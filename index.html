@@ -82,7 +82,7 @@
   .insights-title{font-size:15px;font-weight:700;color:var(--text);}
   .insights-title small{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;}
   .insights-admin-badge{background:#fef3c7;color:#92400e;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.6px;text-transform:uppercase;}
-  .insights-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:14px;}
+  .insights-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:14px; align-items: start;}
   .insight-card{border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:.15s;position:relative;pointer-events:auto;}
   .insight-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(37,99,235,.14);transform:translateY(-1px);}
   .insight-card .open-hint{font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:4px;}
@@ -95,6 +95,7 @@
   .insight-row .k{color:var(--muted);flex:0 0 130px;font-weight:600;}
   .insight-row .v{flex:1;color:var(--text);}
   .insight-row .v b{color:#1d4ed8;}
+  .text-sm{font-size:11px;color:var(--muted);display:block;margin-top:2px;line-height:1.3;}
   .insight-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:1px 7px;border-radius:5px;font-size:11.5px;font-weight:600;margin-right:4px;margin-bottom:2px;}
   .insight-tag.warm{background:#fef3c7;color:#92400e;}
   .insight-tag.cool{background:#fee2e2;color:#b91c1c;}
@@ -268,14 +269,25 @@
 
   <div class="chart-card">
     <div class="chart-head">
-      <div class="chart-title"><span id="monthChartTitle">Статистика за месяц</span><small id="monthChartSub">—</small></div>
-      <div class="chart-tabs" id="monthChartTabs">
-        <button type="button" data-mode="types" class="active">По видам работ</button>
-        <button type="button" data-mode="interest">По интересу</button>
-        <button type="button" data-mode="complexity">По сложности</button>
+      <div class="chart-title">
+        <span id="monthChartTitle">Статистика за месяц</span>
+        <small id="monthChartSub">—</small>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <select id="statsPeriod" style="width:120px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border-color:var(--border); outline:none; cursor:pointer;">
+          <option value="month">Месяц</option>
+          <option value="year">Год</option>
+          <option value="day">День</option>
+        </select>
+        <input type="date" id="statsDate" class="hidden" style="width:130px; padding:5px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border:1px solid var(--border); outline:none;">
+        <div class="chart-tabs" id="monthChartTabs">
+          <button type="button" data-mode="types" class="active">По видам работ</button>
+          <button type="button" data-mode="interest">По интересу</button>
+          <button type="button" data-mode="complexity">По сложности</button>
+        </div>
       </div>
     </div>
-    <div id="monthChartEmpty" class="chart-empty" style="display:none;">Нет данных за этот месяц — добавьте записи, чтобы увидеть диаграмму.</div>
+    <div id="monthChartEmpty" class="chart-empty" style="display:none;">Нет данных за этот период — добавьте записи, чтобы увидеть диаграмму.</div>
     <div class="chart-wrap" id="monthChartWrap"><canvas id="monthChart"></canvas></div>
     <div class="chart-summary" id="monthSummary"></div>
   </div>
@@ -286,7 +298,7 @@
       <span class="insights-admin-badge">Только для админа</span>
     </div>
     <div class="insights-grid" id="monthInsightsGrid"></div>
-    <div class="insight-empty" id="monthInsightsEmpty" style="display:none;">За этот месяц ещё нет записей ни у одного пользователя.</div>
+    <div class="insight-empty" id="monthInsightsEmpty" style="display:none;">За этот период ещё нет записей ни у одного пользователя.</div>
   </div>
 </div>
 
@@ -317,7 +329,6 @@
       </div>
       <div class="empty-msg" id="emptyMsg" style="display:none;">Записей пока нет.</div>
       
-      <!-- Кнопка добавления строки перенесена сюда -->
       <div style="margin-top: 12px; margin-bottom: 24px; display: flex; justify-content: flex-start;">
         <button class="btn primary" id="addRowBtn">+ Добавить строку</button>
       </div>
@@ -586,6 +597,15 @@ function orderedLabels(mode, presentLabels){
 }
 const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
 
+// Получение топ-3 задач из мапы (task -> mins)
+function getTop3Tasks(map) {
+  return [...map.entries()]
+    .sort((a,b) => b[1] - a[1])
+    .slice(0,3)
+    .map(([task, mins]) => `${task} (${fmtHours(mins)})`)
+    .join('; ');
+}
+
 /* =============================================================
    ХЭШИРОВАНИЕ
    ============================================================= */
@@ -743,6 +763,10 @@ function showAppScreen(){
   document.getElementById('userEmail').textContent = getUserDisplayName(sessionEmail);
   document.getElementById('userAvatar').textContent = getUserAvatarText(sessionEmail);
   document.getElementById('userRole').textContent = sessionEmail === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
+  
+  // Инициализация даты для фильтра "День"
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById('statsDate').value = todayStr;
   
   refreshAdminBar();
   renderCalendar();
@@ -970,29 +994,60 @@ document.getElementById('monthChartTabs').querySelectorAll('button').forEach(btn
     btn.classList.add('active'); monthChartMode = btn.dataset.mode; renderMonthChart();
   });
 });
-function collectMonthRecords(){
+
+// Фильтры статистики
+document.getElementById('statsPeriod').addEventListener('change', (e) => {
+  const val = e.target.value;
+  document.getElementById('statsDate').classList.toggle('hidden', val !== 'day');
+  renderMonthChart();
+});
+document.getElementById('statsDate').addEventListener('change', renderMonthChart);
+
+function collectStatsRecords(){
+  const period = document.getElementById('statsPeriod').value;
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  let fromKey, toKey;
+
+  if (period === 'month') {
+    fromKey = keyOf(y, m, 1);
+    toKey = keyOf(y, m, new Date(y, m + 1, 0).getDate());
+  } else if (period === 'year') {
+    fromKey = keyOf(y, 0, 1);
+    toKey = keyOf(y, 11, 31);
+  } else {
+    const val = document.getElementById('statsDate').value;
+    if (val) {
+       const [dy, dm, dd] = val.split('-').map(Number);
+       fromKey = keyOf(dy, dm-1, dd);
+    } else {
+       fromKey = keyOf(y, m, 1); // fallback
+    }
+    toKey = fromKey;
+  }
+
   const isAdmin = sessionEmail === ADMIN_EMAIL;
   const sources = [];
   if (isAdmin){ Object.keys(allData).forEach(email => sources.push({ email, bucket: allData[email] || {} })); }
   else { sources.push({ email: activeEmail, bucket: getBucket() }); }
+
   const records = [];
   sources.forEach(({ email, bucket }) => {
     Object.keys(bucket).forEach(k => {
-      const [ky, km] = k.split('-').map(Number);
-      if (ky !== y || (km - 1) !== m) return;
+      if (k < fromKey || k > toKey) return;
       (bucket[k] || []).forEach(r => records.push({ email, date: k, row: r }));
     });
   });
   return records;
 }
+
 function aggregateMonthData(mode){
-  const records = collectMonthRecords();
+  const records = collectStatsRecords();
   const isAdmin = sessionEmail === ADMIN_EMAIL;
   const presentLabels = new Set();
   records.forEach(({ row }) => { if (rowMinutes(row) <= 0) return; presentLabels.add(categoryOf(row, mode)); });
   const labels = orderedLabels(mode, presentLabels);
   if (!labels.length) return { labels: [], datasets: [], isAdmin, mode };
+  
   if (isAdmin){
     const usersSet = new Set(); const matrix = new Map();
     records.forEach(({ email, row }) => {
@@ -1015,24 +1070,46 @@ function aggregateMonthData(mode){
   const values = labels.map(l => round2((map.get(l) || 0) / 60));
   return { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }], isAdmin, mode };
 }
+
 function renderMonthChart(){
+  const period = document.getElementById('statsPeriod').value;
   const data = aggregateMonthData(monthChartMode);
   const isEmpty = !data.labels.length || !data.datasets.length || data.datasets.every(ds => ds.data.every(v => !v));
+  
   document.getElementById('monthChartEmpty').style.display = isEmpty ? 'flex' : 'none';
   document.getElementById('monthChartWrap').style.display = isEmpty ? 'none' : 'block';
+  
   const m = viewDate.getMonth(), y = viewDate.getFullYear();
   const isAdmin = sessionEmail === ADMIN_EMAIL;
-  document.getElementById('monthChartTitle').textContent = 'Статистика за ' + MONTHS[m].toLowerCase() + ' ' + y;
+  
+  const titleEl = document.getElementById('monthChartTitle');
+  if (period === 'month') {
+    titleEl.textContent = 'Статистика за ' + MONTHS[m].toLowerCase() + ' ' + y;
+  } else if (period === 'year') {
+    titleEl.textContent = 'Статистика за ' + y + ' год';
+  } else {
+    const val = document.getElementById('statsDate').value;
+    if (val) {
+      const [dy, dm, dd] = val.split('-').map(Number);
+      titleEl.textContent = 'Статистика за ' + dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy;
+    } else {
+      titleEl.textContent = 'Статистика за день';
+    }
+  }
+  
   document.getElementById('monthChartSub').textContent = isAdmin ? 'Администратор — данные всех аккаунтов' : 'Только ваши данные';
+  
   const summaryEl = document.getElementById('monthSummary');
   if (!isEmpty){
     let totalMin = 0; data.datasets.forEach(ds => ds.data.forEach(v => { totalMin += (v || 0) * 60; }));
-    const lines = [`Итого: <b>${round2(totalMin/60)} ч</b> за месяц`];
+    const lines = [`Итого: <b>${round2(totalMin/60)} ч</b> за период`];
     if (isAdmin && data.datasets.length){ lines.push(`Аккаунтов: <b>${data.datasets.length}</b>`); lines.push(`Категорий: <b>${data.labels.length}</b>`); }
     summaryEl.innerHTML = lines.join(' &nbsp;·&nbsp; ');
   } else summaryEl.innerHTML = '';
+  
   if (monthChart) monthChart.destroy();
   if (isEmpty) return;
+  
   const canvas = document.getElementById('monthChart');
   const type = isAdmin ? 'bar' : 'doughnut';
   const options = { responsive: true, maintainAspectRatio: false,
@@ -1060,38 +1137,91 @@ function monthRangeKeys(){
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
   return { first: keyOf(y, m, 1), last: keyOf(y, m, new Date(y, m + 1, 0).getDate()) };
 }
+
 function analyzeRecords(records){
-  const result = { totalMin: 0, totalRows: 0, daysCount: new Set(), byType: new Map(), byInterest: new Map(), byComplexity: new Map(), interestByType: new Map(), complexityByType: new Map(), bestTasks: [], worstTasks: [] };
+  const result = { 
+    totalMin: 0, totalRows: 0, daysCount: new Set(), 
+    byType: new Map(), byInterest: new Map(), byComplexity: new Map(), 
+    interestByType: new Map(), complexityByType: new Map(), 
+    bestTasks: [], worstTasks: [],
+    tasksByWorkType: new Map(),
+    tasksByInterest: new Map(),
+    tasksByComplexity: new Map(),
+    topTasks: new Map()
+  };
+  
   records.forEach(({ date, row }) => {
     const mins = rowMinutes(row); if (mins <= 0) return;
     result.totalMin += mins; result.totalRows++; result.daysCount.add(date);
+    
     const type = row.workType || 'Не указано';
+    const tKey = (row.task || '').trim() || '(без названия)';
+    
     result.byType.set(type, (result.byType.get(type) || 0) + mins);
+    result.topTasks.set(tKey, (result.topTasks.get(tKey) || 0) + mins);
+    
+    // Задачи по видам работ
+    if (!result.tasksByWorkType.has(type)) result.tasksByWorkType.set(type, new Map());
+    const mapW = result.tasksByWorkType.get(type);
+    mapW.set(tKey, (mapW.get(tKey) || 0) + mins);
+
     if (row.interest){
       result.byInterest.set(row.interest, (result.byInterest.get(row.interest) || 0) + mins);
       if (!result.interestByType.has(type)) result.interestByType.set(type, { minutes: 0, weighted: 0 });
       const ib = result.interestByType.get(type);
       ib.minutes += mins; ib.weighted += mins * INTEREST.indexOf(row.interest);
+      
+      // Задачи по интересам
+      if (!result.tasksByInterest.has(row.interest)) result.tasksByInterest.set(row.interest, new Map());
+      const mapI = result.tasksByInterest.get(row.interest);
+      mapI.set(tKey, (mapI.get(tKey) || 0) + mins);
     }
     if (row.complexity){
       result.byComplexity.set(row.complexity, (result.byComplexity.get(row.complexity) || 0) + mins);
       if (!result.complexityByType.has(type)) result.complexityByType.set(type, { minutes: 0, weighted: 0 });
       const cb = result.complexityByType.get(type);
       cb.minutes += mins; cb.weighted += mins * COMPLEXITY.indexOf(row.complexity);
+      
+      // Задачи по сложности
+      if (!result.tasksByComplexity.has(row.complexity)) result.tasksByComplexity.set(row.complexity, new Map());
+      const mapC = result.tasksByComplexity.get(row.complexity);
+      mapC.set(tKey, (mapC.get(tKey) || 0) + mins);
     }
-    if (row.interest === 'Интересно' && mins >= 30) result.bestTasks.push({ task: row.task || 'Без названия', minutes: mins });
-    if (row.interest === 'Не интересно' && mins >= 30) result.worstTasks.push({ task: row.task || 'Без названия', minutes: mins });
+    
+    if (row.interest === 'Интересно' && mins >= 30) result.bestTasks.push({ task: tKey, minutes: mins });
+    if (row.interest === 'Не интересно' && mins >= 30) result.worstTasks.push({ task: tKey, minutes: mins });
   });
+  
   result.bestTasks.sort((a,b) => b.minutes - a.minutes);
   result.worstTasks.sort((a,b) => b.minutes - a.minutes);
   return result;
 }
+
 function buildConclusion(a){
   if (a.totalMin <= 0) return { empty: true, text: 'Нет занесённых данных.' };
   const total = a.totalMin;
-  const topTypes = [...a.byType.entries()].sort((x,y) => y[1] - x[1]).slice(0, 3).map(([name, mins]) => ({ name, mins, share: pct(mins, total) }));
-  const interestOrdered = INTEREST.map(l => ({ label: l, mins: a.byInterest.get(l) || 0 }));
-  const complexOrdered  = COMPLEXITY.map(l => ({ label: l, mins: a.byComplexity.get(l) || 0 }));
+  
+  // Виды работ (с задачами)
+  const topTypes = [...a.byType.entries()]
+    .sort((x,y) => y[1] - x[1])
+    .slice(0, 3)
+    .map(([name, mins]) => ({ 
+      name, mins, share: pct(mins, total),
+      topTasks: getTop3Tasks(a.tasksByWorkType.get(name) || new Map())
+    }));
+    
+  // Интересы (с задачами)
+  const interestOrdered = INTEREST.map(l => ({ 
+    label: l, mins: a.byInterest.get(l) || 0,
+    topTasks: getTop3Tasks(a.tasksByInterest.get(l) || new Map())
+  }));
+  
+  // Сложности (с задачами)
+  const complexOrdered = COMPLEXITY.map(l => ({ 
+    label: l, mins: a.byComplexity.get(l) || 0,
+    topTasks: getTop3Tasks(a.tasksByComplexity.get(l) || new Map())
+  }));
+
   const dominantInterest = interestOrdered.reduce((a,b) => b.mins > a.mins ? b : a, interestOrdered[0]);
   const dominantComplex  = complexOrdered.reduce((a,b) => b.mins > a.mins ? b : a, complexOrdered[0]);
   const interestIndex = (() => { const t = interestOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return interestOrdered.reduce((s, x) => s + x.mins * INTEREST.indexOf(x.label), 0) / t; })();
@@ -1103,8 +1233,15 @@ function buildConclusion(a){
   const easiestType    = rankedByComplex[0];
   const hardestType    = rankedByComplex[rankedByComplex.length - 1];
   const personality = guessPersonality({ interestIndex, complexityIndex, dominantInterest: dominantInterest.label, dominantComplex: dominantComplex.label, topType: topTypes[0] ? topTypes[0].name : null, byType: a.byType, total });
-  return { empty: false, totalMin: total, totalRows: a.totalRows, daysCount: a.daysCount.size, topTypes, interestOrdered, complexOrdered, dominantInterest, dominantComplex, mostLikedType, leastLikedType, easiestType, hardestType, personality, interestIndex, complexityIndex, byType: a.byType };
+
+  return { 
+    empty: false, totalMin: total, totalRows: a.totalRows, daysCount: a.daysCount.size, 
+    topTypes, interestOrdered, complexOrdered, dominantInterest, dominantComplex, 
+    mostLikedType, leastLikedType, easiestType, hardestType, personality, 
+    interestIndex, complexityIndex, byType: a.byType 
+  };
 }
+
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
   const analyticsTypes = ['IT','Оптимизация складских процессов','КРО'];
@@ -1147,9 +1284,31 @@ function renderInsightCard(email, conclusion){
   if (conclusion.empty){
     return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(displayName)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
   }
-  const topTypesHtml = conclusion.topTypes.length ? conclusion.topTypes.map(t => `<span class="insight-tag">${esc(t.name)} · ${t.share}%</span>`).join('') : '—';
-  const interestLine = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `${esc(x.label)} — ${fmtHours(x.mins)}`).join(' · ') || 'нет данных';
-  const complexLine = conclusion.complexOrdered.filter(x => x.mins > 0).map(x => `${esc(x.label)} — ${fmtHours(x.mins)}`).join(' · ') || 'нет данных';
+  
+  // Рендер видов работ с топ-3 задач
+  const topTypesHtml = conclusion.topTypes.map(t => `
+    <div style="margin-bottom: 6px;">
+      <span class="insight-tag">${esc(t.name)} · ${t.share}%</span>
+      ${t.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(t.topTasks)}</div>` : ''}
+    </div>
+  `).join('') || '—';
+
+  // Рендер интересов с топ-3 задач
+  const interestHtml = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `
+    <div style="margin-bottom: 6px;">
+      <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
+      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(x.topTasks)}</div>` : ''}
+    </div>
+  `).join('') || 'нет данных';
+
+  // Рендер сложности с топ-3 задач
+  const complexHtml = conclusion.complexOrdered.filter(x => x.mins > 0).map(x => `
+    <div style="margin-bottom: 6px;">
+      <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
+      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(x.topTasks)}</div>` : ''}
+    </div>
+  `).join('') || 'нет данных';
+
   const liked = conclusion.mostLikedType ? `<span class="insight-tag ok">${esc(conclusion.mostLikedType.type)}</span>` : '—';
   const disliked = conclusion.leastLikedType && conclusion.leastLikedType.type !== (conclusion.mostLikedType && conclusion.mostLikedType.type) ? `<span class="insight-tag cool">${esc(conclusion.leastLikedType.type)}</span>` : '—';
   const easiest = conclusion.easiestType ? `<span class="insight-tag ok">${esc(conclusion.easiestType.type)}</span>` : '—';
@@ -1162,8 +1321,8 @@ function renderInsightCard(email, conclusion){
     </div>
     <div class="insight-list">
       <div class="insight-row"><div class="k">Больше всего занимается</div><div class="v">${topTypesHtml}</div></div>
-      <div class="insight-row"><div class="k">Уровень интереса</div><div class="v">${interestLine}</div></div>
-      <div class="insight-row"><div class="k">Уровень сложности</div><div class="v">${complexLine}</div></div>
+      <div class="insight-row"><div class="k">Уровень интереса</div><div class="v">${interestHtml}</div></div>
+      <div class="insight-row"><div class="k">Уровень сложности</div><div class="v">${complexHtml}</div></div>
       <div class="insight-row"><div class="k">Нравится больше</div><div class="v">${liked}</div></div>
       <div class="insight-row"><div class="k">Нравится меньше</div><div class="v">${disliked}</div></div>
       <div class="insight-row"><div class="k">Даётся легче</div><div class="v">${easiest}</div></div>
@@ -1173,6 +1332,7 @@ function renderInsightCard(email, conclusion){
     <div class="open-hint">📊 Открыть углублённый анализ →</div>
   </div>`;
 }
+
 function renderMonthInsights(){
   const card = document.getElementById('monthInsights');
   const empty = document.getElementById('monthInsightsEmpty');
@@ -1192,6 +1352,7 @@ function renderMonthInsights(){
   monthInsightsGrid.innerHTML = cards.join('');
   empty.style.display = rendered ? 'none' : 'block';
 }
+
 function renderDayInsights(){
   const card = document.getElementById('dayInsights');
   if (sessionEmail !== ADMIN_EMAIL){ card.classList.add('hidden'); return; }
