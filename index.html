@@ -206,7 +206,6 @@
   .day-chart-title small{font-weight:500;color:var(--muted);margin-left:6px;}
   .day-chart-container{position:relative;height:280px;width:100%;}
   .day-chart-empty{height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:10px;}
-  /* Модалка задач по категории */
   .chart-tasks-modal{max-width:900px;width:100%;}
   .chart-tasks-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--border);margin-bottom:10px;}
   .chart-tasks-total{font-size:13px;color:var(--muted);}
@@ -404,7 +403,6 @@
   </div>
 </div>
 
-<!-- Модалка: задачи выбранной категории (по клику на сегмент диаграммы) -->
 <div class="overlay" id="chartTasksOverlay">
   <div class="modal chart-tasks-modal">
     <div class="modal-head">
@@ -530,7 +528,8 @@ const INTEREST   = ['Не интересно','Нейтрально','Интер
 const WORKTYPES  = [
   'Работа с почтой','АХО','УК','IT','HD и доп. отгрузки','Зарплата','КРО',
   'ОТ и ПБ','Персонал','Оптимизация складских процессов',
-  'Работа с договорами/Бухгалтерия','Рабочие вопросы (текущая операционка)'
+  'Работа с договорами/Бухгалтерия','Рабочие вопросы (текущая операционка)',
+  'Совещание/ЗУМ','Обучение','Обучение персонала'
 ];
 const ORDER = { types: WORKTYPES, interest: INTEREST, complexity: COMPLEXITY };
 const USER_PALETTE = ['#2563eb','#16a34a','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#a855f7','#64748b','#0ea5e9','#eab308','#10b981','#f43f5e','#6366f1','#d946ef'];
@@ -539,6 +538,7 @@ const CATEGORY_COLORS = {
   'HD и доп. отгрузки':'#06b6d4','Зарплата':'#ec4899','КРО':'#84cc16','ОТ и ПБ':'#f97316',
   'Персонал':'#14b8a6','Оптимизация складских процессов':'#a855f7',
   'Работа с договорами/Бухгалтерия':'#64748b','Рабочие вопросы (текущая операционка)':'#0ea5e9',
+  'Совещание/ЗУМ':'#f43f5e','Обучение':'#6366f1','Обучение персонала':'#10b981',
   'Не указано':'#94a3b8',
   'Не интересно':'#ef4444','Нейтрально':'#f59e0b','Интересно':'#22c55e',
   'Легко':'#22c55e','Средне':'#f59e0b','Сложно':'#ef4444'
@@ -1473,8 +1473,8 @@ function buildConclusion(a){
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
   const analyticsTypes = ['IT','Оптимизация складских процессов','КРО'];
-  const processTypes = ['АХО','УК','ОТ и ПБ','Персонал','Работа с договорами/Бухгалтерия'];
-  const communicativeTypes = ['Работа с почтой','Работа с договорами/Бухгалтерия','Персонал','HD и доп. отгрузки','Рабочие вопросы (текущая операционка)'];
+  const processTypes = ['АХО','УК','ОТ и ПБ','Персонал','Работа с договорами/Бухгалтерия','Обучение персонала'];
+  const communicativeTypes = ['Работа с почтой','Работа с договорами/Бухгалтерия','Персонал','HD и доп. отгрузки','Рабочие вопросы (текущая операционка)','Совещание/ЗУМ','Обучение','Обучение персонала'];
   const routineTypes = ['Зарплата','КРО','Работа с почтой'];
   const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
   const analyticsShare = shareOf(analyticsTypes);
@@ -1676,7 +1676,7 @@ function buildPersonalityDeep(deep){
   const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
   base.byType.forEach((mins, type) => {
     if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
-    else if (['Персонал', 'Рабочие вопросы (текущая операционка)'].includes(type)) riasecScores.S += mins;
+    else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
     else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки'].includes(type)) riasecScores.E += mins;
     else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК'].includes(type)) riasecScores.C += mins;
   });
@@ -1898,7 +1898,6 @@ function getCategoryColor(category, mode){
 }
 
 function openChartTasks(category, mode, sourceRecords, scopeLabel){
-  // sourceRecords — уже в рамках текущего периода/фильтра пользователя
   const filtered = (sourceRecords || []).filter(({ row }) => {
     const mins = rowMinutes(row);
     return mins > 0 && categoryOf(row, mode) === category;
@@ -1974,7 +1973,6 @@ function renderChartTasksBody(){
   const color = getCategoryColor(category, mode);
   
   const groupHtml = sortedGroups.map(g => {
-    // сортировка внутри группы: сначала по дате (новые выше), затем по времени (больше выше)
     g.items.sort((a, b) => {
       if (a.date !== b.date) return b.date.localeCompare(a.date);
       return b.mins - a.mins;
