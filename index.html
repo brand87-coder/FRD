@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ФРД — Фотография рабочего дня</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{ --bg:#f1f5f9; --card:#fff; --border:#e2e8f0; --text:#0f172a; --muted:#64748b; --accent:#2563eb; --accent-light:#dbeafe; --danger:#ef4444; }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI',Roboto,system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+  .hidden{display:none !important;}
+  .app{max-width:1180px;margin:0 auto;padding:24px 16px 60px;}
+  .btn{font-family:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:9px 16px;cursor:pointer;border:1px solid transparent;transition:.15s;white-space:nowrap;}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3);}
+  .btn.primary:hover{background:#1d4ed8;}
+  .btn.ghost{background:#fff;border-color:var(--border);color:var(--text);}
+  .btn.ghost:hover{border-color:#cbd5e1;background:#f8fafc;}
+  .btn.icon{background:#fff;border-color:var(--border);color:var(--text);width:38px;height:38px;padding:0;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .btn.icon:hover{background:#f8fafc;}
+  .auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .auth-card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:28px;width:min(440px,100%);box-shadow:0 12px 44px rgba(15,23,42,.10);}
+  .auth-brand{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+  .logo{width:48px;height:48px;border-radius:14px;flex:0 0 auto;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-weight:800;font-size:15px;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(37,99,235,.35);}
+  .brand h1{font-size:19px;margin:0;font-weight:700;}
+  .brand p{margin:2px 0 0;font-size:13px;color:var(--muted);}
+  .auth-tabs{display:flex;gap:6px;background:#f1f5f9;padding:4px;border-radius:12px;margin-bottom:18px;}
+  .auth-tabs button{flex:1;border:none;background:transparent;padding:9px;border-radius:9px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted);font-family:inherit;transition:.15s;}
+  .auth-tabs button.active{background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .auth-form{display:flex;flex-direction:column;gap:14px;}
+  .auth-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#334155;}
+  .hint{font-size:12px;color:var(--muted);margin:0;line-height:1.5;}
+  .auth-msg{font-size:13px;min-height:18px;color:var(--danger);line-height:1.4;}
+  .auth-msg.ok{color:#16a34a;}
+  .link{border:none;background:none;color:var(--accent);font-size:13px;cursor:pointer;padding:4px 0;font-family:inherit;text-align:left;}
+  .link:hover{text-decoration:underline;}
+  .auth-foot{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--border);padding-top:14px;}
+  .email-status{font-size:11.5px;padding:8px 10px;border-radius:8px;margin-bottom:14px;line-height:1.45;}
+  .email-status.ok{background:#dcfce7;color:#166534;}
+  .email-status.warn{background:#fef3c7;color:#92400e;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+  .brand-wrap{display:flex;align-items:center;gap:14px;}
+  .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .user-chip{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:5px 12px 5px 5px;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit;color:inherit;}
+  .user-chip:hover{border-color:var(--accent);background:#f8fafc;box-shadow:0 2px 8px rgba(37,99,235,.12);}
+  .user-chip .avatar{width:32px;height:32px;border-radius:9px;background:var(--accent-light);color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
+  .user-chip .meta{display:flex;flex-direction:column;line-height:1.2;text-align:left;}
+  .user-chip .meta b{font-size:12.5px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .user-chip .meta span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .admin-bar{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;}
+  .admin-bar label{display:flex;align-items:center;gap:8px;font-weight:600;color:#92400e;}
+  .admin-bar select{width:auto;min-width:280px;}
+  .calendar-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 4px 20px rgba(15,23,42,.05);}
+  .cal-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .month-title{font-size:18px;font-weight:700;flex:1;text-align:center;text-transform:capitalize;}
+  .weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;}
+  .weekdays div{text-align:center;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:4px 0;}
+  .weekdays div:nth-child(6),.weekdays div:nth-child(7){color:#f87171;}
+  .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .cell{background:#fff;border:1px solid var(--border);border-radius:12px;min-height:84px;padding:8px 9px;cursor:pointer;display:flex;flex-direction:column;position:relative;transition:border-color .15s, box-shadow .15s, transform .1s;}
+  .cell:hover{border-color:var(--accent);box-shadow:0 4px 14px rgba(37,99,235,.16);transform:translateY(-1px);}
+  .cell.empty{background:transparent;border:1px dashed #e8edf3;cursor:default;pointer-events:none;}
+  .cell.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light);}
+  .daynum{font-size:14px;font-weight:600;color:#334155;}
+  .cell.weekend .daynum{color:#ef4444;}
+  .cell.today .daynum{color:var(--accent);}
+  .badge{margin-top:auto;align-self:flex-start;background:var(--accent-light);color:#1d4ed8;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;}
+  .dot{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:#22c55e;}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 4px 20px rgba(15,23,42,.05);margin-top:20px;}
+  .chart-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .chart-title{font-size:15px;font-weight:700;color:var(--text);}
+  .chart-title small{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;}
+  .chart-tabs{display:flex;gap:6px;background:#f1f5f9;padding:4px;border-radius:10px;}
+  .chart-tabs button{border:none;background:transparent;padding:6px 12px;border-radius:7px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap;}
+  .chart-tabs button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .chart-wrap{position:relative;height:360px;width:100%;}
+  .chart-empty{display:flex;align-items:center;justify-content:center;height:360px;color:var(--muted);font-size:14px;text-align:center;line-height:1.6;border:1px dashed var(--border);border-radius:12px;}
+  .chart-summary{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted);}
+  .chart-summary b{color:var(--text);}
+  .insights-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 4px 20px rgba(15,23,42,.05);margin-top:20px;border-left:4px solid #f59e0b;}
+  .insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .insights-title{font-size:15px;font-weight:700;color:var(--text);}
+  .insights-title small{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;}
+  .insights-admin-badge{background:#fef3c7;color:#92400e;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.6px;text-transform:uppercase;}
+  .insights-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:14px;}
+  .insight-card{border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:.15s;position:relative;pointer-events:auto;}
+  .insight-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(37,99,235,.14);transform:translateY(-1px);}
+  .insight-card .open-hint{font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:4px;}
+  .insight-user{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);}
+  .insight-avatar{width:34px;height:34px;border-radius:9px;background:var(--accent-light);color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:0 0 auto;}
+  .insight-user b{font-size:13px;font-weight:700;word-break:break-all;}
+  .insight-user small{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
+  .insight-list{display:flex;flex-direction:column;gap:8px;}
+  .insight-row{display:flex;gap:8px;font-size:12.5px;line-height:1.45;}
+  .insight-row .k{color:var(--muted);flex:0 0 130px;font-weight:600;}
+  .insight-row .v{flex:1;color:var(--text);}
+  .insight-row .v b{color:#1d4ed8;}
+  .insight-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:1px 7px;border-radius:5px;font-size:11.5px;font-weight:600;margin-right:4px;margin-bottom:2px;}
+  .insight-tag.warm{background:#fef3c7;color:#92400e;}
+  .insight-tag.cool{background:#fee2e2;color:#b91c1c;}
+  .insight-tag.ok{background:#dcfce7;color:#166534;}
+  .insight-personality{margin-top:4px;padding:10px 12px;border-radius:10px;background:linear-gradient(135deg,#f8fafc,#eff6ff);border:1px solid #dbeafe;font-size:12.5px;line-height:1.55;}
+  .insight-personality b{display:block;font-size:12.5px;color:#1d4ed8;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+  .insight-empty{text-align:center;color:var(--muted);font-size:13px;padding:26px 12px;border:1px dashed var(--border);border-radius:12px;}
+  .deep-modal{max-width:1080px;width:100%;}
+  .deep-body{padding:20px 22px;overflow:auto;flex:1;}
+  .deep-hero{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);border:1px solid #dbeafe;margin-bottom:16px;}
+  .deep-hero .insight-avatar{width:48px;height:48px;font-size:15px;border-radius:12px;}
+  .deep-hero h3{margin:0;font-size:16px;font-weight:700;word-break:break-all;}
+  .deep-hero small{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
+  .deep-kpis{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:18px;}
+  .deep-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center;}
+  .deep-kpi .val{font-size:18px;font-weight:800;color:var(--text);line-height:1.1;}
+  .deep-kpi .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+  .deep-section{margin-bottom:20px;}
+  .deep-section h4{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;}
+  .deep-section h4::before{content:'';display:inline-block;width:4px;height:13px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px;}
+  .deep-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .deep-chart-wrap{position:relative;height:220px;}
+  .deep-list{display:flex;flex-direction:column;gap:6px;}
+  .deep-list-item{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:7px 10px;border-radius:8px;background:#f8fafc;border:1px solid var(--border);}
+  .deep-list-item .nm{font-weight:600;color:var(--text);word-break:break-word;flex:1;}
+  .deep-list-item .vl{color:var(--muted);white-space:nowrap;font-weight:600;}
+  .deep-list-item.ok{background:#f0fdf4;border-color:#bbf7d0;}
+  .deep-list-item.warn{background:#fffbeb;border-color:#fde68a;}
+  .deep-list-item.bad{background:#fef2f2;border-color:#fecaca;}
+  .deep-heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .deep-heatmap .hm-day{aspect-ratio:1;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--muted);font-weight:600;}
+  .deep-heatmap .hm-day.has-data{color:#fff;}
+  .deep-flags{display:flex;flex-direction:column;gap:8px;}
+  .deep-flag{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.5;}
+  .deep-flag.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;}
+  .deep-flag.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;}
+  .deep-flag.bad{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
+  .deep-flag b{display:block;font-weight:700;margin-bottom:2px;}
+  .deep-flag .ic{font-size:16px;line-height:1.2;}
+  .deep-personality{padding:0;border-radius:12px;background:#fff;border:1px solid var(--border);overflow:hidden;font-size:13px;line-height:1.6;}
+  .psych-header{padding:14px 16px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-bottom:1px solid #bfdbfe;}
+  .psych-header h5{margin:0;font-size:14px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;}
+  .psych-grid{padding:16px;display:flex;flex-direction:column;gap:16px;}
+  .psych-block{display:flex;flex-direction:column;gap:6px;}
+  .psych-title{font-size:13px;font-weight:700;color:var(--text);}
+  .psych-title span{color:#1d4ed8;}
+  .psych-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;margin-left:6px;}
+  .psych-badge.ok{background:#dcfce7;color:#166534;}
+  .psych-badge.warn{background:#fef3c7;color:#92400e;}
+  .psych-badge.bad{background:#fee2e2;color:#991b1b;}
+  .psych-desc{font-size:12.5px;color:#475569;}
+  .psych-ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:#475569;}
+  .psych-ul li{margin-bottom:3px;}
+  .pw-modal{max-width:520px;width:100%;}
+  .pw-body{padding:22px;}
+  .pw-status{font-size:13px;line-height:1.55;padding:12px 14px;border-radius:10px;margin-bottom:16px;}
+  .pw-status.ok{background:#dcfce7;color:#166534;}
+  .pw-status.warn{background:#fef3c7;color:#92400e;}
+  .pw-value{font-family:'Consolas','Menlo',monospace;font-size:22px;font-weight:700;letter-spacing:2px;background:#0f172a;color:#e2e8f0;padding:16px;border-radius:12px;text-align:center;user-select:all;margin-bottom:8px;word-break:break-all;}
+  .pw-mail{font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px;word-break:break-all;}
+  .pw-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+  .profile-modal{max-width:560px;width:100%;}
+  .profile-body{padding:22px;overflow:auto;flex:1;}
+  .profile-info{display:grid;gap:10px;padding:14px 16px;background:#f8fafc;border:1px solid var(--border);border-radius:12px;margin-bottom:22px;}
+  .profile-field{display:flex;justify-content:space-between;gap:12px;font-size:13px;}
+  .profile-field span{color:var(--muted);}
+  .profile-field b{font-weight:600;color:var(--text);word-break:break-all;text-align:right;}
+  .profile-section h3{margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;}
+  .profile-section h3::before{content:'';display:inline-block;width:4px;height:14px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px;}
+  .profile-form{display:flex;flex-direction:column;gap:12px;}
+  .profile-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#334155;}
+  .profile-form-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px;align-items:center;}
+  .pw-note{font-size:12px;color:var(--muted);margin:0;line-height:1.5;padding:10px 12px;background:#eff6ff;border-radius:8px;border:1px solid #dbeafe;}
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;padding:20px;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+  .overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;width:min(1240px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden;animation:pop .18s ease-out;}
+  @keyframes pop{from{transform:scale(.97);opacity:.6;}to{transform:scale(1);opacity:1;}}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid var(--border);background:#f8fafc;}
+  .modal-head h2{margin:0;font-size:17px;font-weight:700;text-transform:capitalize;}
+  .modal-head p{margin:3px 0 0;font-size:13px;color:var(--muted);}
+  .close{border:none;background:transparent;font-size:20px;color:var(--muted);cursor:pointer;width:34px;height:34px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .close:hover{background:#e2e8f0;color:var(--text);}
+  .modal-body{padding:0 22px;overflow:auto;flex:1;}
+  .table-wrap{overflow-x:auto;padding:14px 0 4px;}
+  table{border-collapse:collapse;width:100%;min-width:980px;}
+  thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:8px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+  tbody td{padding:6px 6px;vertical-align:middle;border-bottom:1px solid #f1f5f9;}
+  tbody tr:hover{background:#f8fafc;}
+  tbody tr:last-child td{border-bottom:none;}
+  input,select{width:100%;font-family:inherit;font-size:13px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 9px;transition:.15s;}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+  input[readonly]{background:#f8fafc;color:#475569;font-weight:600;cursor:default;}
+  select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer;}
+  .del{border:none;background:transparent;color:#cbd5e1;cursor:pointer;font-size:15px;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:.15s;}
+  .del:hover{background:#fee2e2;color:var(--danger);}
+  .empty-msg{text-align:center;color:var(--muted);font-size:14px;padding:34px 10px;}
+  .modal-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 22px;border-top:1px solid var(--border);background:#f8fafc;}
+  .totals{font-size:13.5px;color:var(--muted);}
+  .totals b{color:var(--text);}
+  .foot-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .day-chart-wrap{margin-top:18px;padding:14px 0 4px;border-top:1px solid var(--border);}
+  .day-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+  .day-chart-title{font-size:13.5px;font-weight:700;color:var(--text);}
+  .day-chart-title small{font-weight:500;color:var(--muted);margin-left:6px;}
+  .day-chart-container{position:relative;height:280px;width:100%;}
+  .day-chart-empty{height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:10px;}
+  @media (max-width:720px){ .app{padding:16px 10px 40px;} .cell{min-height:62px;padding:6px;border-radius:9px;} .daynum{font-size:12px;} .badge{font-size:10px;padding:1px 5px;} .weekdays div{font-size:10px;} .overlay{padding:0;} .modal{max-height:100vh;height:100%;border-radius:0;width:100%;} .brand h1{font-size:16px;} .brand p{display:none;} .auth-card{padding:22px;} .user-chip .meta b{max-width:130px;} .chart-wrap{height:300px;} .insight-row .k{flex:0 0 110px;font-size:12px;} .deep-two{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo">ФРД</div>
+      <div class="brand"><h1>Фотография рабочего дня</h1><p>Вход в систему</p></div>
+    </div>
+    <div class="email-status" id="emailStatus"></div>
+    <div class="auth-tabs">
+      <button type="button" data-tab="login" class="active">Вход</button>
+      <button type="button" data-tab="register">Регистрация</button>
+    </div>
+    <form id="loginForm" class="auth-form" autocomplete="on">
+      <label>Электронная почта<input type="email" id="loginEmail" required autocomplete="username" placeholder="you@company.ru"></label>
+      <label>Пароль<input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••"></label>
+      <button class="btn primary" type="submit">Войти</button>
+      <button type="button" class="link" id="forgotBtn">Забыли пароль?</button>
+      <div class="auth-msg" id="loginMsg"></div>
+    </form>
+    <form id="registerForm" class="auth-form hidden" autocomplete="on">
+      <label>Электронная почта<input type="email" id="regEmail" required autocomplete="email" placeholder="you@company.ru"></label>
+      <p class="hint">Пароль будет сгенерирован и показан на экране.</p>
+      <button class="btn primary" type="submit">Зарегистрироваться</button>
+      <div class="auth-msg" id="regMsg"></div>
+    </form>
+    <div class="auth-foot">Данные каждого аккаунта хранятся отдельно в этом браузере. Администратор&nbsp;<b>golovnya_ap@resanta.ru</b> имеет доступ ко всем аккаунтам.</div>
+  </div>
+</div>
+
+<div id="appScreen" class="app hidden">
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="logo">ФРД</div>
+      <div class="brand"><h1>Фотография рабочего дня</h1><p>Нажмите на дату, чтобы заполнить таблицу</p></div>
+    </div>
+    <div class="top-actions">
+      <button class="user-chip" id="userChip" title="Открыть личный кабинет">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="meta"><b id="userEmail">—</b><span id="userRole">Пользователь</span></div>
+      </button>
+      <button class="btn ghost" id="exportAllBtn">Экспорт данных</button>
+      <button class="btn ghost" id="logoutBtn">Выйти</button>
+    </div>
+  </header>
+
+  <div class="admin-bar hidden" id="adminBar">
+    <label>Просмотр данных аккаунта:<select id="accountSelect"></select></label>
+    <button class="btn ghost" id="exportAllAccountsBtn" style="padding:6px 12px;font-size:13px;">Экспорт всех аккаунтов (CSV)</button>
+  </div>
+
+  <div class="calendar-card">
+    <div class="cal-nav">
+      <button class="btn icon" id="prevBtn" title="Предыдущий месяц">‹</button>
+      <div class="month-title" id="monthTitle"></div>
+      <button class="btn icon" id="nextBtn" title="Следующий месяц">›</button>
+      <button class="btn ghost" id="todayBtn">Сегодня</button>
+    </div>
+    <div class="weekdays"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
+    <div class="calendar" id="calendar"></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title"><span id="monthChartTitle">Статистика за месяц</span><small id="monthChartSub">—</small></div>
+      <div class="chart-tabs" id="monthChartTabs">
+        <button type="button" data-mode="types" class="active">По видам работ</button>
+        <button type="button" data-mode="interest">По интересу</button>
+        <button type="button" data-mode="complexity">По сложности</button>
+      </div>
+    </div>
+    <div id="monthChartEmpty" class="chart-empty" style="display:none;">Нет данных за этот месяц — добавьте записи, чтобы увидеть диаграмму.</div>
+    <div class="chart-wrap" id="monthChartWrap"><canvas id="monthChart"></canvas></div>
+    <div class="chart-summary" id="monthSummary"></div>
+  </div>
+
+  <div class="insights-card hidden" id="monthInsights">
+    <div class="insights-head">
+      <div class="insights-title"><span id="monthInsightsTitle">Заключение по пользователям</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
+      <span class="insights-admin-badge">Только для админа</span>
+    </div>
+    <div class="insights-grid" id="monthInsightsGrid"></div>
+    <div class="insight-empty" id="monthInsightsEmpty" style="display:none;">За этот месяц ещё нет записей ни у одного пользователя.</div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div><h2 id="modalTitle">—</h2><p id="modalSub"></p></div>
+      <button class="close" id="closeBtn" title="Закрыть">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:16%">Что делал</th>
+              <th style="width:7%">Начало</th>
+              <th style="width:7%">Конец</th>
+              <th style="width:8%">Затрачено</th>
+              <th style="width:11%">Уровень сложности</th>
+              <th style="width:11%">Уровень интереса</th>
+              <th style="width:15%">Вид работ</th>
+              <th>Комментарий</th>
+              <th style="width:36px"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-msg" id="emptyMsg" style="display:none;">Записей пока нет — нажмите «Добавить строку».</div>
+
+      <div class="day-chart-wrap">
+        <div class="day-chart-head">
+          <div class="day-chart-title">Диаграмма за день <small>— распределение времени</small></div>
+          <div class="chart-tabs" id="dayChartTabs">
+            <button type="button" data-mode="types" class="active">По видам работ</button>
+            <button type="button" data-mode="interest">По интересу</button>
+            <button type="button" data-mode="complexity">По сложности</button>
+          </div>
+        </div>
+        <div class="day-chart-container"><canvas id="dayChart"></canvas></div>
+        <div class="day-chart-empty" id="dayChartEmpty" style="display:none;">Нет данных для диаграммы.</div>
+      </div>
+
+      <div class="insights-card hidden" id="dayInsights" style="margin-bottom:18px;">
+        <div class="insights-head">
+          <div class="insights-title"><span>Заключение по дню</span><small>Аналитика по записям за этот день</small></div>
+          <span class="insights-admin-badge">Только для админа</span>
+        </div>
+        <div class="insights-grid" id="dayInsightsGrid"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="totals" id="totals"></div>
+      <div class="foot-actions">
+        <button class="btn ghost" id="exportDayBtn">Экспорт дня (CSV)</button>
+        <button class="btn primary" id="addRowBtn">+ Добавить строку</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="deepOverlay">
+  <div class="modal deep-modal">
+    <div class="modal-head">
+      <div><h2>Углублённый анализ</h2><p id="deepSubtitle">—</p></div>
+      <button class="close" id="deepClose" title="Закрыть">✕</button>
+    </div>
+    <div class="deep-body" id="deepBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="pwOverlay">
+  <div class="modal pw-modal">
+    <div class="modal-head">
+      <div><h2 id="pwTitle">Пароль</h2><p id="pwSub">Данные для входа</p></div>
+      <button class="close" id="pwClose" title="Закрыть">✕</button>
+    </div>
+    <div class="pw-body">
+      <div class="pw-status" id="pwStatus"></div>
+      <div class="pw-value" id="pwValue">—</div>
+      <div class="pw-mail" id="pwEmail">—</div>
+      <div class="pw-actions">
+        <button class="btn ghost" id="pwCopy">Скопировать пароль</button>
+        <button class="btn primary" id="pwOk">Понятно</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="profileOverlay">
+  <div class="modal profile-modal">
+    <div class="modal-head">
+      <div><h2>Личный кабинет</h2><p>Управление учётной записью</p></div>
+      <button class="close" id="profileClose" title="Закрыть">✕</button>
+    </div>
+    <div class="profile-body">
+      <div class="profile-info">
+        <div class="profile-field"><span>Электронная почта</span><b id="profileEmail">—</b></div>
+        <div class="profile-field"><span>Роль</span><b id="profileRole">—</b></div>
+        <div class="profile-field"><span>Дата регистрации</span><b id="profileCreated">—</b></div>
+      </div>
+      <div class="profile-section">
+        <h3>Смена пароля</h3>
+        <form id="changePwForm" class="profile-form" autocomplete="off">
+          <label>Текущий пароль<input type="password" id="curPassword" required autocomplete="current-password" placeholder="••••••••"></label>
+          <label>Новый пароль<input type="password" id="newPassword" required autocomplete="new-password" minlength="6" placeholder="Минимум 6 символов"></label>
+          <label>Подтвердите новый пароль<input type="password" id="confirmPassword" required autocomplete="new-password" placeholder="Повторите новый пароль"></label>
+          <p class="pw-note">После смены пароля используйте новый пароль для входа.</p>
+          <div class="auth-msg" id="profileMsg"></div>
+          <div class="profile-form-actions">
+            <button type="button" class="link" id="forgotPwFromProfile">Забыли текущий пароль?</button>
+            <button type="submit" class="btn primary">Сменить пароль</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =============================================================
+   КОНФИГУРАЦИЯ ОТПРАВКИ ПОЧТЫ
+   ============================================================= */
+const EMAIL_CONFIG = {
+  enabled: false, // ПОЧТОВАЯ ОТПРАВКА ОТКЛЮЧЕНА
+  serviceId:  'service_xxxxxxx',
+  templateId: 'template_xxxxxxx',
+  publicKey:  'xxxxxxxxxxxxxxxx'
+};
+
+function isEmailConfigured(){
+  return false; // Принудительно отключаем
+}
+
+const ADMIN_EMAIL = 'golovnya_ap@resanta.ru';
+const USERS_KEY   = 'frd_users_v1';
+const DATA_KEY    = 'frd_data_v2';
+const SESSION_KEY = 'frd_session_v1';
+const LEGACY_KEY  = 'frd_data_v1';
+
+/* =============================================================
+   СПРАВОЧНИКИ
+   ============================================================= */
+const MONTHS     = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const WEEKDAYS   = ['понедельник','вторник','среда','четверг','пятница','суббота','воскресенье'];
+const COMPLEXITY = ['Легко','Средне','Сложно'];
+const INTEREST   = ['Не интересно','Нейтрально','Интересно'];
+const WORKTYPES  = [
+  'Работа с почтой','АХО','УК','IT','HD и доп. отгрузки','Зарплата','КРО',
+  'ОТ и ПБ','Персонал','Оптимизация складских процессов',
+  'Работа с договорами/Бухгалтерия','Рабочие вопросы (текущая операционка)'
+];
+const ORDER = { types: WORKTYPES, interest: INTEREST, complexity: COMPLEXITY };
+const USER_PALETTE = ['#2563eb','#16a34a','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#a855f7','#64748b','#0ea5e9','#eab308','#10b981','#f43f5e','#6366f1','#d946ef'];
+const CATEGORY_COLORS = {
+  'Работа с почтой':'#2563eb','АХО':'#16a34a','УК':'#f59e0b','IT':'#8b5cf6',
+  'HD и доп. отгрузки':'#06b6d4','Зарплата':'#ec4899','КРО':'#84cc16','ОТ и ПБ':'#f97316',
+  'Персонал':'#14b8a6','Оптимизация складских процессов':'#a855f7',
+  'Работа с договорами/Бухгалтерия':'#64748b','Рабочие вопросы (текущая операционка)':'#0ea5e9',
+  'Не указано':'#94a3b8',
+  'Не интересно':'#ef4444','Нейтрально':'#f59e0b','Интересно':'#22c55e',
+  'Легко':'#22c55e','Средне':'#f59e0b','Сложно':'#ef4444'
+};
+
+/* =============================================================
+   ССЫЛКИ НА DOM
+   ============================================================= */
+const authScreen        = document.getElementById('authScreen');
+const appScreen         = document.getElementById('appScreen');
+const calendarEl        = document.getElementById('calendar');
+const monthTitleEl      = document.getElementById('monthTitle');
+const overlay           = document.getElementById('overlay');
+const tbody             = document.getElementById('tbody');
+const totalsEl          = document.getElementById('totals');
+const emptyMsg          = document.getElementById('emptyMsg');
+const modalTitle        = document.getElementById('modalTitle');
+const modalSub          = document.getElementById('modalSub');
+const pwOverlay         = document.getElementById('pwOverlay');
+const profileOverlay    = document.getElementById('profileOverlay');
+const deepOverlay       = document.getElementById('deepOverlay');
+const deepBody          = document.getElementById('deepBody');
+const deepSubtitle      = document.getElementById('deepSubtitle');
+const monthInsightsGrid = document.getElementById('monthInsightsGrid');
+const dayInsightsGrid   = document.getElementById('dayInsightsGrid');
+
+/* =============================================================
+   СОСТОЯНИЕ
+   ============================================================= */
+let users        = safeParse(localStorage.getItem(USERS_KEY), {});
+let allData      = safeParse(localStorage.getItem(DATA_KEY), {});
+let sessionEmail = localStorage.getItem(SESSION_KEY) || null;
+let activeEmail  = sessionEmail;
+let viewDate     = new Date(); viewDate.setDate(1);
+let currentKey   = null;
+let currentRows  = [];
+let monthChart     = null;
+let dayChart       = null;
+let deepChart1     = null;
+let deepChart2     = null;
+let monthChartMode = 'types';
+let dayChartMode   = 'types';
+let pwCurrentValue = '';
+
+/* =============================================================
+   УТИЛИТЫ
+   ============================================================= */
+function safeParse(str, def){
+  try { const v = JSON.parse(str); return (v && typeof v === 'object') ? v : def; }
+  catch(e){ return def; }
+}
+const pad2   = n => String(n).padStart(2,'0');
+const keyOf  = (y,m,d) => `${y}-${pad2(m+1)}-${pad2(d)}`;
+const round2 = x => Math.round(x*100)/100;
+const num    = v => { const n = parseFloat(String(v ?? '').replace(',','.')); return isNaN(n) ? 0 : n; };
+const esc    = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+
+function saveUsers(){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+function saveAllData(){ localStorage.setItem(DATA_KEY, JSON.stringify(allData)); }
+
+function hoursOf(min){ return round2(num(min)/60); }
+function fmtHours(min){
+  const h = round2(num(min)/60);
+  return (h % 1 === 0 ? h : h.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')) + ' ч';
+}
+function calcDuration(start, end) {
+  if (!start || !end) return 0;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let startMins = sh * 60 + sm;
+  let endMins = eh * 60 + em;
+  if (endMins < startMins) endMins += 24 * 60;
+  return endMins - startMins;
+}
+function formatDuration(mins) {
+  if (mins <= 0) return '';
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}:${pad2(m)}`;
+}
+function rowMinutes(r){
+  if (r.start && r.end) return calcDuration(r.start, r.end);
+  if (r.duration) return r.duration;
+  const m = num(r.minutes);
+  if (m > 0) return m;
+  return num(r.hours) * 60;
+}
+function categoryOf(row, mode){
+  if (mode === 'types')      return row.workType || 'Не указано';
+  if (mode === 'interest')   return row.interest || 'Не указано';
+  if (mode === 'complexity') return row.complexity || 'Не указано';
+  return 'Не указано';
+}
+function orderedLabels(mode, presentLabels){
+  const base = ORDER[mode].filter(l => presentLabels.has(l));
+  const result = base.slice();
+  if (presentLabels.has('Не указано')) result.push('Не указано');
+  presentLabels.forEach(l => { if (!result.includes(l)) result.push(l); });
+  return result;
+}
+const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+
+/* =============================================================
+   ХЭШИРОВАНИЕ
+   ============================================================= */
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+async function hashPassword(password, salt){
+  const raw = salt + '|' + password;
+  if (window.crypto && crypto.subtle && crypto.subtle.digest){
+    try { return await sha256(raw); } catch(e){}
+  }
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < raw.length; i++){
+    const c = raw.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  return (h1 >>> 0).toString(16).padStart(8,'0') + (h2 >>> 0).toString(16).padStart(8,'0');
+}
+function genPassword(len = 10){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let out = '';
+  if (window.crypto && crypto.getRandomValues){
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    for (let i = 0; i < len; i++) out += chars[arr[i] % chars.length];
+  } else {
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
+}
+
+/* =============================================================
+   ПОЧТА (ЗАГЛУШКА)
+   ============================================================= */
+function buildEmailText(email, password){
+  return `Логин: ${email}\nПароль: ${password}`;
+}
+async function sendEmail(to, subject, text, password){
+  // Всегда возвращаем false, так как отправка отключена
+  return { sent:false, reason:'disabled' };
+}
+
+/* =============================================================
+   РЕГИСТРАЦИЯ / ВХОД / СБРОС / СМЕНА
+   ============================================================= */
+async function registerUser(rawEmail){
+  const email = String(rawEmail || '').trim().toLowerCase();
+  if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
+  if (users[email])    throw new Error('Пользователь с таким email уже зарегистрирован.');
+  const password = genPassword(10);
+  const salt = genPassword(16);
+  const passHash = await hashPassword(password, salt);
+  users[email] = { email, salt, passHash, createdAt: Date.now() };
+  saveUsers();
+  if (!allData[email]) allData[email] = {};
+  if (Object.keys(users).length === 1 && localStorage.getItem(LEGACY_KEY)){
+    try {
+      const legacy = safeParse(localStorage.getItem(LEGACY_KEY), null);
+      if (legacy && !Object.keys(allData[email]).length) allData[email] = legacy;
+      localStorage.removeItem(LEGACY_KEY);
+    } catch(e){}
+  }
+  saveAllData();
+  const result = await sendEmail(email, 'Регистрация в системе ФРД', buildEmailText(email, password), password);
+  return { email, password, ...result };
+}
+async function loginUser(rawEmail, password){
+  const email = String(rawEmail || '').trim().toLowerCase();
+  if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
+  const u = users[email];
+  if (!u) throw new Error('Пользователь с таким email не найден.');
+  if (!password) throw new Error('Введите пароль.');
+  const h = await hashPassword(password, u.salt);
+  if (h !== u.passHash) throw new Error('Неверный пароль.');
+  sessionEmail = email; activeEmail = email;
+  localStorage.setItem(SESSION_KEY, email);
+  return u;
+}
+async function resetPassword(rawEmail){
+  const email = String(rawEmail || '').trim().toLowerCase();
+  if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
+  const u = users[email];
+  if (!u) throw new Error('Пользователь с таким email не найден.');
+  const password = genPassword(10);
+  u.salt = genPassword(16);
+  u.passHash = await hashPassword(password, u.salt);
+  saveUsers();
+  const result = await sendEmail(email, 'Восстановление пароля ФРД', buildEmailText(email, password), password);
+  return { email, password, ...result };
+}
+async function changePassword(email, currentPassword, newPassword){
+  const u = users[email];
+  if (!u) throw new Error('Пользователь не найден.');
+  if (!currentPassword) throw new Error('Введите текущий пароль.');
+  if (!newPassword)     throw new Error('Введите новый пароль.');
+  if (newPassword.length < 6) throw new Error('Минимум 6 символов.');
+  const curHash = await hashPassword(currentPassword, u.salt);
+  if (curHash !== u.passHash) throw new Error('Текущий пароль неверен.');
+  const sameCheck = await hashPassword(newPassword, u.salt);
+  if (sameCheck === u.passHash) throw new Error('Новый пароль должен отличаться.');
+  u.salt = genPassword(16);
+  u.passHash = await hashPassword(newPassword, u.salt);
+  saveUsers();
+}
+
+/* =============================================================
+   МОДАЛКА ПАРОЛЯ
+   ============================================================= */
+function showPasswordResult({ title, email, password, sent }){
+  pwCurrentValue = password;
+  document.getElementById('pwTitle').textContent = title;
+  document.getElementById('pwSub').textContent   = email;
+  document.getElementById('pwValue').textContent = password;
+  document.getElementById('pwEmail').textContent = 'Логин: ' + email;
+  const statusEl = document.getElementById('pwStatus');
+  // Так как отправка отключена, sent всегда будет false
+  statusEl.className = 'pw-status warn';
+  statusEl.innerHTML = 'Пароль сгенерирован. <b>Сохраните его</b> — больше он не отобразится.';
+  pwOverlay.classList.add('open');
+}
+function closePwModal(){ pwOverlay.classList.remove('open'); pwCurrentValue = ''; }
+document.getElementById('pwClose').addEventListener('click', closePwModal);
+document.getElementById('pwOk').addEventListener('click', closePwModal);
+pwOverlay.addEventListener('click', e => { if (e.target === pwOverlay) closePwModal(); });
+document.getElementById('pwCopy').addEventListener('click', async () => {
+  if (!pwCurrentValue) return;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(pwCurrentValue);
+    else { const ta = document.createElement('textarea'); ta.value = pwCurrentValue; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    const btn = document.getElementById('pwCopy'); const old = btn.textContent;
+    btn.textContent = 'Скопировано ✓'; setTimeout(() => { btn.textContent = old; }, 1500);
+  } catch(e){ alert('Не удалось скопировать.'); }
+});
+
+/* =============================================================
+   ЭКРАНЫ
+   ============================================================= */
+function updateEmailStatus(){
+  const el = document.getElementById('emailStatus');
+  el.className = 'email-status warn';
+  el.textContent = 'Отправка почты отключена. Пароль будет показан на экране.';
+}
+function showAuthScreen(){
+  authScreen.classList.remove('hidden');
+  appScreen.classList.add('hidden');
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginMsg').textContent = '';
+  document.getElementById('regMsg').textContent = '';
+  updateEmailStatus();
+}
+function showAppScreen(){
+  authScreen.classList.add('hidden');
+  appScreen.classList.remove('hidden');
+  document.getElementById('userEmail').textContent = sessionEmail;
+  document.getElementById('userAvatar').textContent = (sessionEmail || '?').slice(0,2).toUpperCase();
+  document.getElementById('userRole').textContent = sessionEmail === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
+  refreshAdminBar();
+  renderCalendar();
+  renderMonthChart();
+  renderMonthInsights();
+}
+function refreshAdminBar(){
+  const bar = document.getElementById('adminBar');
+  const sel = document.getElementById('accountSelect');
+  if (sessionEmail !== ADMIN_EMAIL){ bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  const emails = Object.keys(users).sort();
+  if (!emails.includes(ADMIN_EMAIL)) emails.unshift(ADMIN_EMAIL);
+  sel.innerHTML = emails.map(e => `<option value="${esc(e)}"${e === activeEmail ? ' selected' : ''}>${esc(e)}${e === ADMIN_EMAIL ? ' (вы)' : ''}</option>`).join('');
+}
+function getBucket(){
+  if (!activeEmail) return {};
+  if (!allData[activeEmail]) allData[activeEmail] = {};
+  return allData[activeEmail];
+}
+
+/* =============================================================
+   КАЛЕНДАРЬ
+   ============================================================= */
+function renderCalendar(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  monthTitleEl.textContent = MONTHS[m] + ' ' + y;
+  const startGap = (new Date(y, m, 1).getDay() + 6) % 7;
+  const daysCount = new Date(y, m + 1, 0).getDate();
+  const now = new Date();
+  const todayKey = keyOf(now.getFullYear(), now.getMonth(), now.getDate());
+  const store = getBucket();
+  calendarEl.innerHTML = '';
+  for (let i = 0; i < startGap; i++){ const e = document.createElement('div'); e.className = 'cell empty'; calendarEl.appendChild(e); }
+  for (let d = 1; d <= daysCount; d++){
+    const key = keyOf(y, m, d);
+    const rows = store[key] || [];
+    let totalMin = 0; rows.forEach(r => { totalMin += rowMinutes(r); });
+    const dow = (startGap + d - 1) % 7;
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (dow >= 5) cell.classList.add('weekend');
+    if (key === todayKey) cell.classList.add('today');
+    cell.innerHTML = `<div class="daynum">${d}</div>` + (rows.length ? `<div class="dot"></div>` : '') + (totalMin > 0 ? `<div class="badge">${fmtHours(totalMin)}</div>` : '');
+    cell.addEventListener('click', () => openDay(key));
+    calendarEl.appendChild(cell);
+  }
+}
+
+/* =============================================================
+   МОДАЛКА ДНЯ
+   ============================================================= */
+function openDay(key){
+  if (!activeEmail) return;
+  const store = getBucket();
+  if (!store[key]) store[key] = [];
+  currentKey = key; currentRows = store[key];
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  modalTitle.textContent = `${d} ${MONTHS_GEN[m-1]} ${y}`;
+  modalSub.textContent = WEEKDAYS[(dt.getDay() + 6) % 7];
+  renderRows();
+  overlay.classList.add('open');
+  setTimeout(() => { renderDayChart(); renderDayInsights(); }, 30);
+}
+function closeDay(){
+  if (currentKey && activeEmail){
+    const store = getBucket();
+    if (store[currentKey] && store[currentKey].length === 0) delete store[currentKey];
+  }
+  saveAllData();
+  overlay.classList.remove('open');
+  currentKey = null; currentRows = [];
+  renderCalendar(); renderMonthChart(); renderMonthInsights();
+}
+function selectHtml(field, options, value){
+  const opts = ['<option value="">—</option>'].concat(options.map(o => `<option value="${esc(o)}"${o === value ? ' selected' : ''}>${esc(o)}</option>`)).join('');
+  return `<select data-field="${field}">${opts}</select>`;
+}
+function rowHtml(r, i){
+  const mins = rowMinutes(r);
+  const spentVal = formatDuration(mins);
+  return `<tr data-index="${i}">
+    <td><input type="text" data-field="task" value="${esc(r.task)}" placeholder="Описание задачи"></td>
+    <td><input type="time" data-field="start" value="${esc(r.start || '')}"></td>
+    <td><input type="time" data-field="end" value="${esc(r.end || '')}"></td>
+    <td><input type="text" data-field="spent" value="${spentVal}" readonly placeholder="0:00"></td>
+    <td>${selectHtml('complexity', COMPLEXITY, r.complexity)}</td>
+    <td>${selectHtml('interest',   INTEREST,   r.interest)}</td>
+    <td>${selectHtml('workType',   WORKTYPES,  r.workType)}</td>
+    <td><input type="text" data-field="comment" value="${esc(r.comment)}" placeholder="Комментарий"></td>
+    <td><button type="button" class="del" data-del="${i}" title="Удалить">✕</button></td>
+  </tr>`;
+}
+function renderRows(){
+  tbody.innerHTML = currentRows.map(rowHtml).join('');
+  emptyMsg.style.display = currentRows.length ? 'none' : 'block';
+  updateTotals(); renderDayChart(); renderDayInsights();
+}
+function updateTotals(){
+  let mins = 0;
+  currentRows.forEach(r => { mins += rowMinutes(r); });
+  totalsEl.innerHTML = `Строк: <b>${currentRows.length}</b> &nbsp;·&nbsp; Итого затрачено: <b>${formatDuration(mins) || '0:00'}</b>`;
+}
+
+/* =============================================================
+   РЕДАКТИРОВАНИЕ
+   ============================================================= */
+function handleEdit(e){
+  const el = e.target;
+  if (!el.dataset || !el.dataset.field) return;
+  const tr = el.closest('tr'); if (!tr) return;
+  const i = Number(tr.dataset.index); if (!currentRows[i]) return;
+  
+  const field = el.dataset.field;
+  currentRows[i][field] = el.value;
+
+  if (field === 'start' || field === 'end'){
+    const startInput = tr.querySelector('[data-field="start"]');
+    const endInput = tr.querySelector('[data-field="end"]');
+    const spentInput = tr.querySelector('[data-field="spent"]');
+    
+    currentRows[i].start = startInput.value;
+    currentRows[i].end = endInput.value;
+    const mins = calcDuration(startInput.value, endInput.value);
+    
+    spentInput.value = formatDuration(mins);
+    currentRows[i].duration = mins;
+    
+    updateTotals();
+    renderDayChart();
+    renderDayInsights();
+  }
+  
+  if (['interest','complexity','workType'].includes(field)){
+    renderDayChart(); 
+    renderDayInsights();
+  }
+  
+  saveAllData();
+}
+tbody.addEventListener('input',  handleEdit);
+tbody.addEventListener('change', handleEdit);
+
+tbody.addEventListener('click', e => {
+  const btn = e.target.closest('button.del'); if (!btn) return;
+  const i = Number(btn.dataset.del);
+  currentRows.splice(i, 1); saveAllData(); renderRows();
+});
+document.getElementById('addRowBtn').addEventListener('click', () => {
+  if (!currentRows) return;
+  currentRows.push({ task:'', start:'', end:'', duration:0, complexity:'', interest:'', workType:'', comment:'' });
+  saveAllData(); renderRows();
+  const lastRow = tbody.querySelector('tr:last-child');
+  if (lastRow) lastRow.querySelector('[data-field="task"]').focus();
+});
+document.getElementById('closeBtn').addEventListener('click', closeDay);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeDay(); });
+
+/* =============================================================
+   ДНЕВНАЯ ДИАГРАММА
+   ============================================================= */
+document.getElementById('dayChartTabs').querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('dayChartTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); dayChartMode = btn.dataset.mode; renderDayChart();
+  });
+});
+function aggregateDayData(mode){
+  const map = new Map();
+  currentRows.forEach(r => { const mins = rowMinutes(r); if (mins <= 0) return; const cat = categoryOf(r, mode); map.set(cat, (map.get(cat) || 0) + mins); });
+  const presentLabels = new Set(map.keys());
+  const labels = orderedLabels(mode, presentLabels);
+  const values = labels.map(l => round2((map.get(l) || 0) / 60));
+  return { labels, values };
+}
+function renderDayChart(){
+  if (!currentRows || !currentRows.length){
+    document.getElementById('dayChartEmpty').style.display = 'flex';
+    document.querySelector('.day-chart-container').style.display = 'none';
+    if (dayChart){ dayChart.destroy(); dayChart = null; }
+    return;
+  }
+  const { labels, values } = aggregateDayData(dayChartMode);
+  if (!labels.length || !values.some(v => v > 0)){
+    document.getElementById('dayChartEmpty').style.display = 'flex';
+    document.querySelector('.day-chart-container').style.display = 'none';
+    if (dayChart){ dayChart.destroy(); dayChart = null; }
+    return;
+  }
+  document.getElementById('dayChartEmpty').style.display = 'none';
+  document.querySelector('.day-chart-container').style.display = 'block';
+  const canvas = document.getElementById('dayChart');
+  if (dayChart) dayChart.destroy();
+  dayChart = new Chart(canvas.getContext('2d'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '58%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 },
+          generateLabels: chart => chart.data.labels.map((label, i) => ({ text: `${label} — ${chart.data.datasets[0].data[i]} ч`, fillStyle: chart.data.datasets[0].backgroundColor[i], strokeStyle: chart.data.datasets[0].backgroundColor[i], lineWidth: 0, index: i })) } },
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} ч` } }
+      } }
+  });
+}
+
+/* =============================================================
+   МЕСЯЧНАЯ ДИАГРАММА
+   ============================================================= */
+document.getElementById('monthChartTabs').querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('monthChartTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); monthChartMode = btn.dataset.mode; renderMonthChart();
+  });
+});
+function collectMonthRecords(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  const isAdmin = sessionEmail === ADMIN_EMAIL;
+  const sources = [];
+  if (isAdmin){ Object.keys(allData).forEach(email => sources.push({ email, bucket: allData[email] || {} })); }
+  else { sources.push({ email: activeEmail, bucket: getBucket() }); }
+  const records = [];
+  sources.forEach(({ email, bucket }) => {
+    Object.keys(bucket).forEach(k => {
+      const [ky, km] = k.split('-').map(Number);
+      if (ky !== y || (km - 1) !== m) return;
+      (bucket[k] || []).forEach(r => records.push({ email, date: k, row: r }));
+    });
+  });
+  return records;
+}
+function aggregateMonthData(mode){
+  const records = collectMonthRecords();
+  const isAdmin = sessionEmail === ADMIN_EMAIL;
+  const presentLabels = new Set();
+  records.forEach(({ row }) => { if (rowMinutes(row) <= 0) return; presentLabels.add(categoryOf(row, mode)); });
+  const labels = orderedLabels(mode, presentLabels);
+  if (!labels.length) return { labels: [], datasets: [], isAdmin, mode };
+  if (isAdmin){
+    const usersSet = new Set(); const matrix = new Map();
+    records.forEach(({ email, row }) => {
+      const mins = rowMinutes(row); if (mins <= 0) return;
+      usersSet.add(email); const cat = categoryOf(row, mode); const k = `${email}|${cat}`;
+      matrix.set(k, (matrix.get(k) || 0) + mins);
+    });
+    const usersArr = [...usersSet].sort();
+    const datasets = usersArr.map((email, i) => ({ label: email, data: labels.map(cat => round2((matrix.get(`${email}|${cat}`) || 0) / 60)), backgroundColor: USER_PALETTE[i % USER_PALETTE.length], borderRadius: 4, borderSkipped: false }));
+    return { labels, datasets, isAdmin, mode, stacked: true };
+  }
+  const map = new Map();
+  records.forEach(({ row }) => { const mins = rowMinutes(row); if (mins <= 0) return; const cat = categoryOf(row, mode); map.set(cat, (map.get(cat) || 0) + mins); });
+  const values = labels.map(l => round2((map.get(l) || 0) / 60));
+  return { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }], isAdmin, mode };
+}
+function renderMonthChart(){
+  const data = aggregateMonthData(monthChartMode);
+  const isEmpty = !data.labels.length || !data.datasets.length || data.datasets.every(ds => ds.data.every(v => !v));
+  document.getElementById('monthChartEmpty').style.display = isEmpty ? 'flex' : 'none';
+  document.getElementById('monthChartWrap').style.display = isEmpty ? 'none' : 'block';
+  const m = viewDate.getMonth(), y = viewDate.getFullYear();
+  const isAdmin = sessionEmail === ADMIN_EMAIL;
+  document.getElementById('monthChartTitle').textContent = 'Статистика за ' + MONTHS[m].toLowerCase() + ' ' + y;
+  document.getElementById('monthChartSub').textContent = isAdmin ? 'Администратор — данные всех аккаунтов' : 'Только ваши данные';
+  const summaryEl = document.getElementById('monthSummary');
+  if (!isEmpty){
+    let totalMin = 0; data.datasets.forEach(ds => ds.data.forEach(v => { totalMin += (v || 0) * 60; }));
+    const lines = [`Итого: <b>${round2(totalMin/60)} ч</b> за месяц`];
+    if (isAdmin && data.datasets.length){ lines.push(`Аккаунтов: <b>${data.datasets.length}</b>`); lines.push(`Категорий: <b>${data.labels.length}</b>`); }
+    summaryEl.innerHTML = lines.join(' &nbsp;·&nbsp; ');
+  } else summaryEl.innerHTML = '';
+  if (monthChart) monthChart.destroy();
+  if (isEmpty) return;
+  const canvas = document.getElementById('monthChart');
+  const type = isAdmin ? 'bar' : 'doughnut';
+  const options = { responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: isAdmin ? 'bottom' : 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => { const v = ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed; return `${ctx.dataset.label || ''}: ${v} ч`.replace(/^: /,''); } } }
+    } };
+  if (isAdmin){ options.scales = { x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40, minRotation: 0 } }, y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } } }; }
+  else options.cutout = '55%';
+  monthChart = new Chart(canvas.getContext('2d'), { type, data: { labels: data.labels, datasets: data.datasets }, options });
+}
+
+/* =============================================================
+   БАЗОВАЯ АНАЛИТИКА
+   ============================================================= */
+function collectRecordsForUser(email, fromKey, toKey){
+  const bucket = allData[email] || {}; const out = [];
+  Object.keys(bucket).forEach(k => {
+    if (k < fromKey || k > toKey) return;
+    (bucket[k] || []).forEach(r => out.push({ date: k, row: r }));
+  });
+  return out;
+}
+function monthRangeKeys(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  return { first: keyOf(y, m, 1), last: keyOf(y, m, new Date(y, m + 1, 0).getDate()) };
+}
+function analyzeRecords(records){
+  const result = { totalMin: 0, totalRows: 0, daysCount: new Set(), byType: new Map(), byInterest: new Map(), byComplexity: new Map(), interestByType: new Map(), complexityByType: new Map(), bestTasks: [], worstTasks: [] };
+  records.forEach(({ date, row }) => {
+    const mins = rowMinutes(row); if (mins <= 0) return;
+    result.totalMin += mins; result.totalRows++; result.daysCount.add(date);
+    const type = row.workType || 'Не указано';
+    result.byType.set(type, (result.byType.get(type) || 0) + mins);
+    if (row.interest){
+      result.byInterest.set(row.interest, (result.byInterest.get(row.interest) || 0) + mins);
+      if (!result.interestByType.has(type)) result.interestByType.set(type, { minutes: 0, weighted: 0 });
+      const ib = result.interestByType.get(type);
+      ib.minutes += mins; ib.weighted += mins * INTEREST.indexOf(row.interest);
+    }
+    if (row.complexity){
+      result.byComplexity.set(row.complexity, (result.byComplexity.get(row.complexity) || 0) + mins);
+      if (!result.complexityByType.has(type)) result.complexityByType.set(type, { minutes: 0, weighted: 0 });
+      const cb = result.complexityByType.get(type);
+      cb.minutes += mins; cb.weighted += mins * COMPLEXITY.indexOf(row.complexity);
+    }
+    if (row.interest === 'Интересно' && mins >= 30) result.bestTasks.push({ task: row.task || 'Без названия', minutes: mins });
+    if (row.interest === 'Не интересно' && mins >= 30) result.worstTasks.push({ task: row.task || 'Без названия', minutes: mins });
+  });
+  result.bestTasks.sort((a,b) => b.minutes - a.minutes);
+  result.worstTasks.sort((a,b) => b.minutes - a.minutes);
+  return result;
+}
+function buildConclusion(a){
+  if (a.totalMin <= 0) return { empty: true, text: 'Нет занесённых данных.' };
+  const total = a.totalMin;
+  const topTypes = [...a.byType.entries()].sort((x,y) => y[1] - x[1]).slice(0, 3).map(([name, mins]) => ({ name, mins, share: pct(mins, total) }));
+  const interestOrdered = INTEREST.map(l => ({ label: l, mins: a.byInterest.get(l) || 0 }));
+  const complexOrdered  = COMPLEXITY.map(l => ({ label: l, mins: a.byComplexity.get(l) || 0 }));
+  const dominantInterest = interestOrdered.reduce((a,b) => b.mins > a.mins ? b : a, interestOrdered[0]);
+  const dominantComplex  = complexOrdered.reduce((a,b) => b.mins > a.mins ? b : a, complexOrdered[0]);
+  const interestIndex = (() => { const t = interestOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return interestOrdered.reduce((s, x) => s + x.mins * INTEREST.indexOf(x.label), 0) / t; })();
+  const complexityIndex = (() => { const t = complexOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return complexOrdered.reduce((s, x) => s + x.mins * COMPLEXITY.indexOf(x.label), 0) / t; })();
+  const rankedByInterest = [...a.interestByType.entries()].map(([type, v]) => ({ type, minutes: v.minutes, idx: v.minutes ? v.weighted / v.minutes : 0 })).filter(x => x.minutes >= 30).sort((x,y) => y.idx - x.idx);
+  const rankedByComplex  = [...a.complexityByType.entries()].map(([type, v]) => ({ type, minutes: v.minutes, idx: v.minutes ? v.weighted / v.minutes : 0 })).filter(x => x.minutes >= 30).sort((x,y) => x.idx - y.idx);
+  const mostLikedType  = rankedByInterest[0];
+  const leastLikedType = rankedByInterest[rankedByInterest.length - 1];
+  const easiestType    = rankedByComplex[0];
+  const hardestType    = rankedByComplex[rankedByComplex.length - 1];
+  const personality = guessPersonality({ interestIndex, complexityIndex, dominantInterest: dominantInterest.label, dominantComplex: dominantComplex.label, topType: topTypes[0] ? topTypes[0].name : null, byType: a.byType, total });
+  return { empty: false, totalMin: total, totalRows: a.totalRows, daysCount: a.daysCount.size, topTypes, interestOrdered, complexOrdered, dominantInterest, dominantComplex, mostLikedType, leastLikedType, easiestType, hardestType, personality, interestIndex, complexityIndex, byType: a.byType };
+}
+function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
+  if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
+  const analyticsTypes = ['IT','Оптимизация складских процессов','КРО'];
+  const processTypes = ['АХО','УК','ОТ и ПБ','Персонал','Работа с договорами/Бухгалтерия'];
+  const communicativeTypes = ['Работа с почтой','Работа с договорами/Бухгалтерия','Персонал','HD и доп. отгрузки','Рабочие вопросы (текущая операционка)'];
+  const routineTypes = ['Зарплата','КРО','Работа с почтой'];
+  const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
+  const analyticsShare = shareOf(analyticsTypes);
+  const processShare = shareOf(processTypes);
+  const communicativeShare = shareOf(communicativeTypes);
+  const routineShare = shareOf(routineTypes);
+  const highInterest = interestIndex !== null && interestIndex >= 1.6;
+  const lowInterest = interestIndex !== null && interestIndex <= 0.8;
+  const highComplexity = complexityIndex !== null && complexityIndex >= 1.4;
+  const lowComplexity = complexityIndex !== null && complexityIndex <= 0.9;
+  const traits = [];
+  if (analyticsShare >= 0.4) traits.push({ title: 'Аналитик', text: 'Большую часть времени занимается аналитическими и оптимизационными задачами.' });
+  if (communicativeShare >= 0.4) traits.push({ title: 'Коммуникатор', text: 'Много работает с людьми и внешними контактами.' });
+  if (processShare >= 0.4) traits.push({ title: 'Организатор процессов', text: 'Держит в порядке административные и обеспечивающие процессы.' });
+  if (routineShare >= 0.4 && highInterest && !highComplexity) traits.push({ title: 'Исполнитель-стабильщик', text: 'Спокойно выполняет регулярные задачи.' });
+  if (highComplexity && highInterest) traits.push({ title: 'Профессионал-вызов', text: 'Сложные задачи вызывают интерес.' });
+  if (highComplexity && lowInterest) traits.push({ title: 'Зона риска выгорания', text: 'Много сложного и неинтересного.' });
+  if (lowComplexity && highInterest) traits.push({ title: 'Энтузиаст-исполнитель', text: 'Нравится, что делает, задачи легки.' });
+  if (lowComplexity && lowInterest) traits.push({ title: 'Нужна мотивация', text: 'Лёгкие и неинтересные задачи.' });
+  if (!traits.length){
+    if (dominantInterest === 'Интересно') traits.push({ title: 'Увлечённый универсал', text: 'Работа нравится, профиль смешанный.' });
+    else if (dominantInterest === 'Не интересно') traits.push({ title: 'Исполнитель по обязанности', text: 'Задачи выполняются без интереса.' });
+    else traits.push({ title: 'Стабильный исполнитель', text: 'Смешанный профиль и нейтральное отношение.' });
+  }
+  return traits[0];
+}
+
+/* =============================================================
+   КАРТОЧКИ
+   ============================================================= */
+function renderInsightCard(email, conclusion){
+  const avatar = (email || '?').slice(0,2).toUpperCase();
+  if (conclusion.empty){
+    return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(email)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
+  }
+  const topTypesHtml = conclusion.topTypes.length ? conclusion.topTypes.map(t => `<span class="insight-tag">${esc(t.name)} · ${t.share}%</span>`).join('') : '—';
+  const interestLine = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `${esc(x.label)} — ${fmtHours(x.mins)}`).join(' · ') || 'нет данных';
+  const complexLine = conclusion.complexOrdered.filter(x => x.mins > 0).map(x => `${esc(x.label)} — ${fmtHours(x.mins)}`).join(' · ') || 'нет данных';
+  const liked = conclusion.mostLikedType ? `<span class="insight-tag ok">${esc(conclusion.mostLikedType.type)}</span>` : '—';
+  const disliked = conclusion.leastLikedType && conclusion.leastLikedType.type !== (conclusion.mostLikedType && conclusion.mostLikedType.type) ? `<span class="insight-tag cool">${esc(conclusion.leastLikedType.type)}</span>` : '—';
+  const easiest = conclusion.easiestType ? `<span class="insight-tag ok">${esc(conclusion.easiestType.type)}</span>` : '—';
+  const hardest = conclusion.hardestType && conclusion.hardestType.type !== (conclusion.easiestType && conclusion.easiestType.type) ? `<span class="insight-tag cool">${esc(conclusion.hardestType.type)}</span>` : '—';
+  return `<div class="insight-card" data-user="${esc(email)}">
+    <div class="insight-user">
+      <div class="insight-avatar">${esc(avatar)}</div>
+      <div><b>${esc(email)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
+    </div>
+    <div class="insight-list">
+      <div class="insight-row"><div class="k">Больше всего занимается</div><div class="v">${topTypesHtml}</div></div>
+      <div class="insight-row"><div class="k">Уровень интереса</div><div class="v">${interestLine}</div></div>
+      <div class="insight-row"><div class="k">Уровень сложности</div><div class="v">${complexLine}</div></div>
+      <div class="insight-row"><div class="k">Нравится больше</div><div class="v">${liked}</div></div>
+      <div class="insight-row"><div class="k">Нравится меньше</div><div class="v">${disliked}</div></div>
+      <div class="insight-row"><div class="k">Даётся легче</div><div class="v">${easiest}</div></div>
+      <div class="insight-row"><div class="k">Даётся сложнее</div><div class="v">${hardest}</div></div>
+    </div>
+    <div class="insight-personality"><b>${esc(conclusion.personality.title)}</b>${esc(conclusion.personality.text)}</div>
+    <div class="open-hint">📊 Открыть углублённый анализ →</div>
+  </div>`;
+}
+function renderMonthInsights(){
+  const card = document.getElementById('monthInsights');
+  const empty = document.getElementById('monthInsightsEmpty');
+  if (sessionEmail !== ADMIN_EMAIL){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  const { first, last } = monthRangeKeys();
+  const emails = Object.keys(allData).sort();
+  let rendered = 0; const cards = [];
+  emails.forEach(email => {
+    const records = collectRecordsForUser(email, first, last);
+    if (!records.length) return;
+    const conclusion = buildConclusion(analyzeRecords(records));
+    if (conclusion.empty) return;
+    cards.push(renderInsightCard(email, conclusion));
+    rendered++;
+  });
+  monthInsightsGrid.innerHTML = cards.join('');
+  empty.style.display = rendered ? 'none' : 'block';
+}
+function renderDayInsights(){
+  const card = document.getElementById('dayInsights');
+  if (sessionEmail !== ADMIN_EMAIL){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  if (!currentKey || !activeEmail){ dayInsightsGrid.innerHTML = ''; return; }
+  const records = (allData[activeEmail] && allData[activeEmail][currentKey]) ? allData[activeEmail][currentKey].map(row => ({ date: currentKey, row })) : [];
+  dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)));
+}
+
+/* =============================================================
+   УГЛУБЛЁННЫЙ АНАЛИЗ
+   ============================================================= */
+function closeDeep(){
+  deepOverlay.classList.remove('open');
+  if (deepChart1){ deepChart1.destroy(); deepChart1 = null; }
+  if (deepChart2){ deepChart2.destroy(); deepChart2 = null; }
+}
+document.getElementById('deepClose').addEventListener('click', closeDeep);
+deepOverlay.addEventListener('click', e => { if (e.target === deepOverlay) closeDeep(); });
+
+function analyzeDeep(email){
+  const { first, last } = monthRangeKeys();
+  const records = collectRecordsForUser(email, first, last);
+  const base = analyzeRecords(records);
+  if (base.totalMin <= 0) return null;
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const perDay = Array.from({ length: daysInMonth }, () => ({ mins: 0, interest: 0, interestW: 0, complex: 0, complexW: 0 }));
+  const weeks = Array.from({ length: 5 }, () => ({ mins: 0, interest: 0, interestW: 0, complex: 0, complexW: 0, count: 0 }));
+  const tasksMap = new Map();
+  records.forEach(({ date, row }) => {
+    const mins = rowMinutes(row); if (mins <= 0) return;
+    const day = Number(date.slice(8, 10));
+    const wi = Math.min(4, Math.floor((day - 1) / 7));
+    const iIdx = row.interest ? INTEREST.indexOf(row.interest) : -1;
+    const cIdx = row.complexity ? COMPLEXITY.indexOf(row.complexity) : -1;
+    perDay[day - 1].mins += mins;
+    if (iIdx >= 0){ perDay[day - 1].interest += mins; perDay[day - 1].interestW += mins * iIdx; }
+    if (cIdx >= 0){ perDay[day - 1].complex += mins; perDay[day - 1].complexW += mins * cIdx; }
+    weeks[wi].mins += mins; weeks[wi].count++;
+    if (iIdx >= 0){ weeks[wi].interest += mins; weeks[wi].interestW += mins * iIdx; }
+    if (cIdx >= 0){ weeks[wi].complex += mins; weeks[wi].complexW += mins * cIdx; }
+    const tKey = (row.task || '').trim() || '(без названия)';
+    if (!tasksMap.has(tKey)) tasksMap.set(tKey, { task: tKey, minutes: 0, interest: -1, complexity: -1, type: row.workType || 'Не указано' });
+    const t = tasksMap.get(tKey);
+    t.minutes += mins;
+    if (iIdx >= 0) t.interest = Math.max(t.interest, iIdx);
+    if (cIdx >= 0) t.complexity = Math.max(t.complexity, cIdx);
+  });
+  const tasks = [...tasksMap.values()].sort((a,b) => b.minutes - a.minutes);
+  const interestIndex = (() => { const t = INTEREST.reduce((s, l) => s + (base.byInterest.get(l) || 0), 0); if (!t) return null; return INTEREST.reduce((s, l) => s + (base.byInterest.get(l) || 0) * INTEREST.indexOf(l), 0) / t; })();
+  const complexityIndex = (() => { const t = COMPLEXITY.reduce((s, l) => s + (base.byComplexity.get(l) || 0), 0); if (!t) return null; return COMPLEXITY.reduce((s, l) => s + (base.byComplexity.get(l) || 0) * COMPLEXITY.indexOf(l), 0) / t; })();
+  const flags = [];
+  const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
+  const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
+  if (interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'bad', title:'Низкий интерес', text:'Больше половины времени — неинтересные задачи.' });
+  if (interestIndex !== null && interestIndex >= 1.6) flags.push({ type:'ok', title:'Высокая вовлечённость', text:'Большая часть времени — интересные задачи.' });
+  if (complexityIndex !== null && complexityIndex >= 1.4 && interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'bad', title:'Риск выгорания', text:'Много сложного и неинтересного.' });
+  if (complexityIndex !== null && complexityIndex <= 0.9 && interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'warn', title:'Застой', text:'Лёгкие и неинтересные задачи.' });
+  if (routineShare >= 0.5) flags.push({ type:'warn', title:'Много рутины', text:'Больше половины времени — регулярные процессы.' });
+  if (base.daysCount.size <= 3 && base.totalMin >= 60) flags.push({ type:'warn', title:'Мало дней с записями', text:`Данные только за ${base.daysCount.size} дн.` });
+  const typeStats = [...base.byType.entries()].map(([type, mins]) => {
+    const iv = base.interestByType.get(type); const cv = base.complexityByType.get(type);
+    return { type, mins, interestIdx: iv && iv.minutes ? iv.weighted / iv.minutes : null, complexIdx: cv && cv.minutes ? cv.weighted / cv.minutes : null };
+  }).sort((a,b) => b.mins - a.mins);
+  const topTasksByTime = tasks.slice(0, 5);
+  const topLikedTasks = tasks.filter(t => t.interest === 2).sort((a,b) => b.minutes - a.minutes).slice(0, 5);
+  const topDislikedTasks = tasks.filter(t => t.interest === 0).sort((a,b) => b.minutes - a.minutes).slice(0, 5);
+  const avgPerActiveDay = base.daysCount.size ? base.totalMin / base.daysCount.size : 0;
+  const activeDayMins = perDay.filter(d => d.mins > 0).map(d => d.mins);
+  let stability = null;
+  if (activeDayMins.length >= 3){
+    const mean = activeDayMins.reduce((s,v) => s + v, 0) / activeDayMins.length;
+    const variance = activeDayMins.reduce((s,v) => s + (v - mean) ** 2, 0) / activeDayMins.length;
+    const std = Math.sqrt(variance);
+    stability = { mean, std, cv: mean ? std / mean : 0 };
+  }
+  const conclusion = buildConclusion(base);
+  return { email, base, conclusion, perDay, weeks, tasks, typeStats, flags, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, stability, interestIndex, complexityIndex, daysInMonth, monthY: y, monthM: m };
+}
+
+function buildPersonalityDeep(deep){
+  const { base, conclusion, interestIndex, complexityIndex, typeStats } = deep;
+  const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
+  base.byType.forEach((mins, type) => {
+    if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
+    else if (['Персонал', 'Рабочие вопросы (текущая операционка)'].includes(type)) riasecScores.S += mins;
+    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки'].includes(type)) riasecScores.E += mins;
+    else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК'].includes(type)) riasecScores.C += mins;
+  });
+
+  const riasecMap = {
+    I: { name: 'Исследователь (Investigative)', desc: 'Склонен к анализу, решению сложных задач и оптимизации. Любит работать с данными и искать скрытые закономерности.' },
+    S: { name: 'Социальный (Social)', desc: 'Ориентирован на людей и коммуникацию. Отлично чувствует себя в роли помощника, наставника или координатора.' },
+    E: { name: 'Предприимчивый (Enterprising)', desc: 'Нацелен на результат, любит влиять на процессы, вести переговоры и брать на себя ответственность за бизнес-показатели.' },
+    C: { name: 'Конвенциональный (Conventional)', desc: 'Ценит порядок, стабильность и четкие правила. Отлично справляется с рутиной, документооборотом и поддержанием процессов.' }
+  };
+
+  let topRiasec = 'I';
+  let maxScore = -1;
+  for (const [key, score] of Object.entries(riasecScores)) {
+    if (score > maxScore) { maxScore = score; topRiasec = key; }
+  }
+  const riasecResult = riasecMap[topRiasec] || { name: 'Смешанный тип', desc: 'Профиль задач сбалансирован.' };
+
+  const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
+  const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
+  
+  let burnoutLevel = 'Низкий';
+  let burnoutClass = 'ok';
+  let burnoutText = 'Уровень стресса в норме, задачи разнообразны и соответствуют возможностям.';
+
+  if (interestIndex !== null && complexityIndex !== null) {
+    if (complexityIndex > 1.3 && interestIndex < 1.0) {
+      burnoutLevel = 'Высокий'; burnoutClass = 'bad';
+      burnoutText = 'Много сложных и при этом неинтересных задач. Классический триггер выгорания. Требуется пересмотр задач.';
+    } else if (routineShare > 0.55 || (interestIndex < 1.1)) {
+      burnoutLevel = 'Средний'; burnoutClass = 'warn';
+      burnoutText = 'Заметная доля рутины или снижение интереса. Возможна потеря вовлеченности. Рекомендуется добавить развивающие задачи.';
+    } else if (complexityIndex > 1.4 && interestIndex > 1.5) {
+      burnoutLevel = 'Низкий (Вызов)'; burnoutClass = 'ok';
+      burnoutText = 'Высокая нагрузка, но задачи приносят удовольствие. Это "здоровый вызов", но важно следить за отдыхом.';
+    }
+  }
+
+  let uncLevel = 'Средняя';
+  let uncClass = 'warn';
+  let uncText = 'Спокойно относится к задачам средней сложности, но может теряться при резких изменениях.';
+
+  if (complexityIndex !== null) {
+    if (complexityIndex >= 1.4) {
+      uncLevel = 'Высокая'; uncClass = 'ok';
+      uncText = 'Готов браться за нестандартные и сложные задачи без четких инструкций. Хорошо работает в условиях неопределенности.';
+    } else if (complexityIndex <= 0.8) {
+      uncLevel = 'Низкая'; uncClass = 'bad';
+      uncText = 'Предпочитает четкие инструкции, регламенты и стабильные задачи. Необходимо избегать хаотичных нагрузок.';
+    }
+  }
+
+  const recs = [];
+  if (topRiasec === 'I') recs.push('Давать больше задач на автоматизацию, аналитику и стратегическое планирование.');
+  if (topRiasec === 'S') recs.push('Вовлекать в коммуникацию с людьми, наставничество или разрешение конфликтов.');
+  if (topRiasec === 'E') recs.push('Доверять ведение переговоров, работу с новыми проектами и внешними партнерами.');
+  if (topRiasec === 'C') recs.push('Оставлять рутинные процессы под контролем, но постепенно добавлять задачи на оптимизацию.');
+  if (burnoutLevel === 'Высокий') recs.push('⚠️ Срочно пересмотреть распределение сложных задач, добавить короткие перерывы.');
+  if (uncLevel === 'Низкая') recs.push('Максимально четко ставить задачи, использовать чек-листы и регламенты.');
+  if (uncLevel === 'Высокая') recs.push('Привлекать к проектам с неопределенными требованиями на этапе их зарождения.');
+
+  return { riasec: riasecResult, burnout: { level: burnoutLevel, class: burnoutClass, text: burnoutText }, uncertainty: { level: uncLevel, class: uncClass, text: uncText }, recs };
+}
+
+function openDeepAnalysis(email){
+  if (deepOverlay) deepOverlay.classList.add('open');
+  if (deepBody) deepBody.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b;">Формирование отчета...</div>';
+
+  try {
+    if (sessionEmail !== ADMIN_EMAIL) throw new Error('Нет прав администратора');
+    if (!email) throw new Error('Не выбран пользователь');
+
+    const deep = analyzeDeep(email);
+    if (!deep) throw new Error('Нет данных для анализа за выбранный месяц');
+
+    if (deepChart1) { deepChart1.destroy(); deepChart1 = null; }
+    if (deepChart2) { deepChart2.destroy(); deepChart2 = null; }
+
+    const { base, perDay, flags } = deep;
+    const avatar = (email || '?').slice(0,2).toUpperCase();
+    const personality = buildPersonalityDeep(deep); 
+    const m = MONTHS[viewDate.getMonth()].toLowerCase();
+    const y = viewDate.getFullYear();
+    deepSubtitle.textContent = `${email} · ${m} ${y}`;
+
+    const kpiHtml = `<div class="deep-kpis">
+      <div class="deep-kpi"><div class="val">${fmtHours(base.totalMin)}</div><div class="lbl">Всего часов</div></div>
+      <div class="deep-kpi"><div class="val">${base.totalRows}</div><div class="lbl">Записей</div></div>
+      <div class="deep-kpi"><div class="val">${base.daysCount.size}</div><div class="lbl">Дней</div></div>
+      <div class="deep-kpi"><div class="val">${fmtHours(deep.avgPerActiveDay)}</div><div class="lbl">В среднем/день</div></div>
+      <div class="deep-kpi"><div class="val">${deep.interestIndex !== null ? deep.interestIndex.toFixed(2) : '—'}</div><div class="lbl">Индекс интереса</div></div>
+      <div class="deep-kpi"><div class="val">${deep.complexityIndex !== null ? deep.complexityIndex.toFixed(2) : '—'}</div><div class="lbl">Индекс сложности</div></div>
+    </div>`;
+
+    const maxDayMins = Math.max(1, ...perDay.map(d => d.mins));
+    const heatCells = perDay.map((d, i) => {
+      const day = i + 1;
+      const intensity = d.mins / maxDayMins;
+      const bg = d.mins === 0 ? '#f1f5f9' : `rgba(37,99,235,${0.15 + intensity * 0.75})`;
+      return `<div class="hm-day ${d.mins > 0 ? 'has-data' : ''}" style="background:${bg};" title="${day}: ${fmtHours(d.mins)}">${day}</div>`;
+    }).join('');
+    const heatHtml = `<div class="deep-section"><h4>Тепловая карта по дням</h4><div class="deep-heatmap">${heatCells}</div></div>`;
+
+    const flagsHtml = flags.length ? `<div class="deep-section"><h4>Наблюдения и флаги</h4><div class="deep-flags">${flags.map(f => `<div class="deep-flag ${f.type}"><span class="ic">${f.type === 'ok' ? '✓' : f.type === 'warn' ? '⚠' : '✕'}</span><div><b>${esc(f.title)}</b>${esc(f.text)}</div></div>`).join('')}</div></div>` : '';
+
+    const taskItem = (t, cls='') => `<div class="deep-list-item ${cls}"><div class="nm">${esc(t.task)}</div><div class="vl">${fmtHours(t.minutes)}</div></div>`;
+    const topTasksHtml = deep.topTasksByTime.length ? `<div class="deep-section"><h4>Топ задач по времени</h4><div class="deep-list">${deep.topTasksByTime.map(t => taskItem(t)).join('')}</div></div>` : '';
+    const likedTasksHtml = deep.topLikedTasks.length ? `<div class="deep-section" style="margin-top:0;"><h4>Самые интересные задачи</h4><div class="deep-list">${deep.topLikedTasks.map(t => taskItem(t, 'ok')).join('')}</div></div>` : '';
+    const dislikedTasksHtml = deep.topDislikedTasks.length ? `<div class="deep-section" style="margin-top:0;"><h4>Самые неинтересные задачи</h4><div class="deep-list">${deep.topDislikedTasks.map(t => taskItem(t, 'bad')).join('')}</div></div>` : '';
+
+    const typeRows = deep.typeStats.slice(0, 8).map(t => {
+      const share = base.totalMin ? Math.round(t.mins / base.totalMin * 100) : 0;
+      return `<div class="deep-list-item"><div class="nm">${esc(t.type)} <span style="color:var(--muted);font-weight:500;">· ${share}%</span></div><div class="vl">${fmtHours(t.mins)}</div></div>`;
+    }).join('');
+    const typesHtml = `<div class="deep-section"><h4>Виды работ</h4><div class="deep-list">${typeRows}</div></div>`;
+
+    const personalityHtml = `
+      <div class="deep-section">
+        <h4>Психологический портрет (на основе RIASEC и Маслач)</h4>
+        <div class="deep-personality">
+          <div class="psych-header"><h5>Профиль личности</h5></div>
+          <div class="psych-grid">
+            <div class="psych-block">
+              <div class="psych-title">Тип по Голланду: <span>${esc(personality.riasec.name)}</span></div>
+              <div class="psych-desc">${esc(personality.riasec.desc)}</div>
+            </div>
+            <div class="psych-block">
+              <div class="psych-title">Риск выгорания: <span class="psych-badge ${personality.burnout.class}">${personality.burnout.level}</span></div>
+              <div class="psych-desc">${esc(personality.burnout.text)}</div>
+            </div>
+            <div class="psych-block">
+              <div class="psych-title">Толерантность к неопределенности: <span class="psych-badge ${personality.uncertainty.class}">${personality.uncertainty.level}</span></div>
+              <div class="psych-desc">${esc(personality.uncertainty.text)}</div>
+            </div>
+            <div class="psych-block">
+              <div class="psych-title">Рекомендации по управлению:</div>
+              <ul class="psych-ul">
+                ${personality.recs.map(r => `<li>${esc(r)}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    deepBody.innerHTML = `
+      <div class="deep-hero"><div class="insight-avatar">${esc(avatar)}</div><div><h3>${esc(email)}</h3><small>Записи за ${m} ${y}</small></div></div>
+      ${kpiHtml}
+      <div class="deep-section"><h4>Динамика по неделям</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>
+      ${heatHtml}
+      ${flagsHtml}
+      ${typesHtml}
+      <div class="deep-two">${likedTasksHtml || '<div></div>'}${dislikedTasksHtml || '<div></div>'}</div>
+      ${topTasksHtml}
+      ${personalityHtml}
+    `;
+
+    setTimeout(() => {
+        try { drawDeepCharts(deep); } catch(e) { console.error('Chart error', e); }
+    }, 100);
+
+  } catch(err) {
+    if (deepBody) {
+        deepBody.innerHTML = `<div style="padding: 20px; color: #b91c1c; background: #fee2e2; border-radius: 8px; margin: 20px;">
+            <b>Ошибка при формировании анализа:</b><br>${err.message}
+        </div>`;
+    }
+    console.error('[ФРД] openDeepAnalysis error:', err);
+  }
+}
+
+function drawDeepCharts(deep){
+  if (deepChart1) { deepChart1.destroy(); deepChart1 = null; }
+  if (deepChart2) { deepChart2.destroy(); deepChart2 = null; }
+  const c1 = document.getElementById('deepChart1');
+  const c2 = document.getElementById('deepChart2');
+  if (!c1 || !c2) return;
+
+  const weekLabels = ['Неделя 1','Неделя 2','Неделя 3','Неделя 4','Неделя 5'];
+  deepChart1 = new Chart(c1.getContext('2d'), {
+    type: 'bar',
+    data: { labels: weekLabels, datasets: [{ label: 'Часов', data: deep.weeks.map(w => round2(w.mins / 60)), backgroundColor: '#2563eb', borderRadius: 5 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, title: { display: true, text: 'Динамика по неделям', font: { size: 12, weight: '600' }, color: '#334155' } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { beginAtZero: true, ticks: { font: { size: 10 } } } } }
+  });
+  deepChart2 = new Chart(c2.getContext('2d'), {
+    type: 'line',
+    data: { labels: weekLabels, datasets: [
+      { label: 'Интерес', data: deep.weeks.map(w => w.interest ? round2(w.interestW / w.interest) : null), borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.12)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 },
+      { label: 'Сложность', data: deep.weeks.map(w => w.complex ? round2(w.complexW / w.complex) : null), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.10)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 }
+    ] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, font: { size: 10 } } }, title: { display: true, text: 'Интерес и сложность', font: { size: 12, weight: '600' }, color: '#334155' } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { beginAtZero: true, max: 2, ticks: { stepSize: 1, font: { size: 10 } } } } }
+  });
+}
+
+/* Надежное делегирование событий */
+function setupInsightsDelegation(){
+  [monthInsightsGrid, dayInsightsGrid].forEach(grid => {
+    if (!grid || grid.dataset.bound === '1') return;
+    grid.dataset.bound = '1';
+    grid.addEventListener('click', function(e) {
+      const card = e.target.closest('.insight-card[data-user]');
+      if (!card) return;
+      const email = card.dataset.user;
+      if (email) openDeepAnalysis(email);
+    });
+  });
+}
+
+/* =============================================================
+   НАВИГАЦИЯ
+   ============================================================= */
+document.getElementById('prevBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
+document.getElementById('nextBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
+document.getElementById('todayBtn').addEventListener('click', () => { const n = new Date(); viewDate = new Date(n.getFullYear(), n.getMonth(), 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
+document.getElementById('accountSelect').addEventListener('change', e => {
+  if (sessionEmail !== ADMIN_EMAIL) return;
+  activeEmail = e.target.value;
+  renderCalendar(); renderMonthChart(); renderMonthInsights();
+});
+
+/* =============================================================
+   ЭКСПОРТ
+   ============================================================= */
+function csvCell(v){ return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
+function downloadCsv(rows, filename){
+  const csv = '\uFEFF' + rows.map(r => r.map(csvCell).join(';')).join('\r\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const HEADER = ['Дата','Что делал','Начало','Конец','Затрачено','Уровень сложности','Уровень интереса','Вид работ','Комментарий'];
+document.getElementById('exportDayBtn').addEventListener('click', () => {
+  if (!currentKey) return;
+  const rows = [HEADER];
+  currentRows.forEach(r => {
+    const mins = rowMinutes(r);
+    rows.push([currentKey, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+  });
+  downloadCsv(rows, `ФРД_${activeEmail}_${currentKey}.csv`);
+});
+document.getElementById('exportAllBtn').addEventListener('click', () => {
+  if (!activeEmail){ alert('Нет активного аккаунта.'); return; }
+  const bucket = allData[activeEmail] || {};
+  const keys = Object.keys(bucket).sort();
+  if (!keys.length){ alert('Данных пока нет.'); return; }
+  const rows = [HEADER];
+  keys.forEach(k => (bucket[k] || []).forEach(r => {
+    const mins = rowMinutes(r);
+    rows.push([k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+  }));
+  downloadCsv(rows, `ФРД_${activeEmail}_все_данные.csv`);
+});
+document.getElementById('exportAllAccountsBtn').addEventListener('click', () => {
+  if (sessionEmail !== ADMIN_EMAIL) return;
+  const emails = Object.keys(allData).sort();
+  const rows = [['Аккаунт', ...HEADER]]; let total = 0;
+  emails.forEach(email => {
+    const bucket = allData[email] || {};
+    Object.keys(bucket).sort().forEach(k => (bucket[k] || []).forEach(r => {
+      const mins = rowMinutes(r);
+      rows.push([email, k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+      total++;
+    }));
+  });
+  if (!total){ alert('Данных пока нет.'); return; }
+  downloadCsv(rows, 'ФРД_все_аккаунты.csv');
+});
+
+/* =============================================================
+   ФОРМЫ
+   ============================================================= */
+document.querySelectorAll('.auth-tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+    document.getElementById('loginMsg').textContent = '';
+    document.getElementById('regMsg').textContent = '';
+  });
+});
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('loginMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  try {
+    await loginUser(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+    document.getElementById('loginPassword').value = '';
+    showAppScreen();
+  } catch(err){ msg.textContent = err.message || 'Ошибка входа.'; }
+});
+document.getElementById('registerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('regMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  const submitBtn = e.target.querySelector('button[type="submit"]'); const oldText = submitBtn.textContent;
+  submitBtn.disabled = true; submitBtn.textContent = 'Регистрация…';
+  try {
+    const res = await registerUser(document.getElementById('regEmail').value);
+    document.getElementById('regEmail').value = '';
+    msg.className = 'auth-msg ok'; msg.textContent = 'Аккаунт создан.';
+    showPasswordResult({ title: 'Аккаунт создан', email: res.email, password: res.password, sent: res.sent });
+    document.querySelector('.auth-tabs button[data-tab="login"]').click();
+    document.getElementById('loginEmail').value = res.email;
+  } catch(err){ msg.textContent = err.message || 'Ошибка регистрации.'; }
+  finally { submitBtn.disabled = false; submitBtn.textContent = oldText; }
+});
+document.getElementById('forgotBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('loginMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  const email = document.getElementById('loginEmail').value.trim() || prompt('Введите email:');
+  if (!email) return;
+  try {
+    const res = await resetPassword(email);
+    msg.className = 'auth-msg ok'; msg.textContent = 'Пароль сгенерирован.';
+    showPasswordResult({ title: 'Восстановление пароля', email: res.email, password: res.password, sent: res.sent });
+  } catch(err){ msg.textContent = err.message || 'Ошибка.'; }
+});
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem(SESSION_KEY);
+  sessionEmail = null; activeEmail = null;
+  viewDate = new Date(); viewDate.setDate(1);
+  showAuthScreen();
+});
+
+/* =============================================================
+   ЛИЧНЫЙ КАБИНЕТ
+   ============================================================= */
+function openProfile(){
+  if (!sessionEmail) return;
+  const u = users[sessionEmail]; if (!u) return;
+  document.getElementById('profileEmail').textContent = u.email;
+  document.getElementById('profileRole').textContent = u.email === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
+  const created = u.createdAt ? new Date(u.createdAt) : null;
+  document.getElementById('profileCreated').textContent = created ? `${created.getDate()} ${MONTHS_GEN[created.getMonth()]} ${created.getFullYear()}, ${pad2(created.getHours())}:${pad2(created.getMinutes())}` : '—';
+  document.getElementById('changePwForm').reset();
+  document.getElementById('profileMsg').className = 'auth-msg';
+  document.getElementById('profileMsg').textContent = '';
+  profileOverlay.classList.add('open');
+  setTimeout(() => document.getElementById('curPassword').focus(), 50);
+}
+function closeProfile(){
+  profileOverlay.classList.remove('open');
+  document.getElementById('changePwForm').reset();
+  document.getElementById('profileMsg').textContent = '';
+}
+document.getElementById('userChip').addEventListener('click', openProfile);
+document.getElementById('profileClose').addEventListener('click', closeProfile);
+profileOverlay.addEventListener('click', e => { if (e.target === profileOverlay) closeProfile(); });
+document.getElementById('changePwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('profileMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  const cur = document.getElementById('curPassword').value, nw = document.getElementById('newPassword').value, conf = document.getElementById('confirmPassword').value;
+  if (nw !== conf){ msg.textContent = 'Пароли не совпадают.'; return; }
+  const submitBtn = e.target.querySelector('button[type="submit"]'); submitBtn.disabled = true; submitBtn.textContent = 'Сохранение…';
+  try {
+    await changePassword(sessionEmail, cur, nw);
+    msg.className = 'auth-msg ok'; msg.textContent = 'Пароль изменён.'; e.target.reset();
+    setTimeout(closeProfile, 1400);
+  } catch(err){ msg.className = 'auth-msg'; msg.textContent = err.message || 'Ошибка.'; }
+  finally { submitBtn.disabled = false; submitBtn.textContent = 'Сменить пароль'; }
+});
+document.getElementById('forgotPwFromProfile').addEventListener('click', async () => {
+  if (!sessionEmail) return;
+  if (!confirm('Сгенерировать новый пароль?')) return;
+  try {
+    const res = await resetPassword(sessionEmail);
+    closeProfile();
+    localStorage.removeItem(SESSION_KEY);
+    const wasEmail = sessionEmail; sessionEmail = null; activeEmail = null;
+    showAuthScreen();
+    document.getElementById('loginEmail').value = wasEmail;
+    const loginMsg = document.getElementById('loginMsg'); loginMsg.className = 'auth-msg ok';
+    loginMsg.textContent = 'Пароль сгенерирован.';
+    showPasswordResult({ title: 'Восстановление', email: res.email, password: res.password, sent: res.sent });
+  } catch(err){ alert(err.message || 'Ошибка.'); }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (deepOverlay.classList.contains('open')) closeDeep();
+  else if (profileOverlay.classList.contains('open')) closeProfile();
+  else if (pwOverlay.classList.contains('open')) closePwModal();
+  else if (overlay.classList.contains('open')) closeDay();
+});
+
+/* =============================================================
+   СТАРТ
+   ============================================================= */
+(function init(){
+  setupInsightsDelegation();
+  if (sessionEmail && users[sessionEmail]){
+    activeEmail = sessionEmail;
+    showAppScreen();
+  } else {
+    sessionEmail = null; activeEmail = null;
+    localStorage.removeItem(SESSION_KEY);
+    showAuthScreen();
+  }
+})();
+</script>
+</body>
+</html>
