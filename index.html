@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ФРД — Фотография рабочего дня</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<!-- Подключение Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 <style>
@@ -35,6 +34,7 @@
   .hint{font-size:12px;color:var(--muted);margin:0;line-height:1.5;}
   .auth-msg{font-size:13px;min-height:18px;color:var(--danger);line-height:1.4;}
   .auth-msg.ok{color:#16a34a;}
+  .auth-msg.warn{color:#92400e;}
   .link{border:none;background:none;color:var(--accent);font-size:13px;cursor:pointer;padding:4px 0;font-family:inherit;text-align:left;}
   .link:hover{text-decoration:underline;}
   .auth-foot{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.6;border-top:1px solid var(--border);padding-top:14px;}
@@ -80,6 +80,7 @@
   .chart-empty{display:flex;align-items:center;justify-content:center;height:360px;color:var(--muted);font-size:14px;text-align:center;line-height:1.6;border:1px dashed var(--border);border-radius:12px;}
   .chart-summary{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted);}
   .chart-summary b{color:var(--text);}
+  .chart-hint{font-size:11.5px;color:var(--muted);margin-top:8px;font-style:italic;}
   .insights-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 4px 20px rgba(15,23,42,.05);margin-top:20px;border-left:4px solid #f59e0b;}
   .insights-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
   .insights-title{font-size:15px;font-weight:700;color:var(--text);}
@@ -205,7 +206,29 @@
   .day-chart-title small{font-weight:500;color:var(--muted);margin-left:6px;}
   .day-chart-container{position:relative;height:280px;width:100%;}
   .day-chart-empty{height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:10px;}
-  @media (max-width:720px){ .app{padding:16px 10px 40px;} .cell{min-height:62px;padding:6px;border-radius:9px;} .daynum{font-size:12px;} .badge{font-size:10px;padding:1px 5px;} .weekdays div{font-size:10px;} .overlay{padding:0;} .modal{max-height:100vh;height:100%;border-radius:0;width:100%;} .brand h1{font-size:16px;} .brand p{display:none;} .auth-card{padding:22px;} .user-chip .meta b{max-width:130px;} .chart-wrap{height:300px;} .insight-row .k{flex:0 0 110px;font-size:12px;} .deep-two{grid-template-columns:1fr;} }
+  /* Модалка задач по категории */
+  .chart-tasks-modal{max-width:900px;width:100%;}
+  .chart-tasks-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--border);margin-bottom:10px;}
+  .chart-tasks-total{font-size:13px;color:var(--muted);}
+  .chart-tasks-total b{color:var(--text);}
+  .chart-task-group{margin-bottom:16px;}
+  .chart-task-group-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;color:var(--text);padding:8px 12px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);margin-bottom:6px;}
+  .chart-task-group-head .cgt-label{display:flex;align-items:center;gap:8px;}
+  .chart-task-group-head .cgt-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
+  .chart-task-group-head .cgt-stat{color:var(--muted);font-weight:600;font-size:12.5px;white-space:nowrap;}
+  .chart-task-group-head .cgt-stat b{color:var(--text);}
+  .chart-task-row{display:grid;grid-template-columns:110px 1fr 90px;gap:10px;font-size:13px;padding:7px 12px;border-bottom:1px solid #f1f5f9;align-items:center;}
+  .chart-task-row:hover{background:#f8fafc;}
+  .chart-task-row:last-child{border-bottom:none;}
+  .ct-date{color:var(--muted);font-variant-numeric:tabular-nums;}
+  .ct-task{color:var(--text);word-break:break-word;}
+  .ct-user{display:inline-block;margin-left:6px;font-size:11px;color:#1d4ed8;background:#eff6ff;padding:1px 6px;border-radius:5px;font-weight:600;}
+  .ct-time{text-align:right;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+  @media (max-width:720px){
+    .app{padding:16px 10px 40px;} .cell{min-height:62px;padding:6px;border-radius:9px;} .daynum{font-size:12px;} .badge{font-size:10px;padding:1px 5px;} .weekdays div{font-size:10px;} .overlay{padding:0;} .modal{max-height:100vh;height:100%;border-radius:0;width:100%;} .brand h1{font-size:16px;} .brand p{display:none;} .auth-card{padding:22px;} .user-chip .meta b{max-width:130px;} .chart-wrap{height:300px;} .insight-row .k{flex:0 0 110px;font-size:12px;} .deep-two{grid-template-columns:1fr;}
+    .chart-task-row{grid-template-columns:80px 1fr 65px;font-size:12px;}
+    .chart-tasks-toolbar{flex-direction:column;align-items:stretch;}
+  }
 </style>
 </head>
 <body>
@@ -277,6 +300,9 @@
         <small id="monthChartSub">—</small>
       </div>
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <select id="employeeFilter" class="hidden" title="Фильтр по сотруднику" style="width:180px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border:1px solid var(--border); outline:none; cursor:pointer;">
+          <option value="all">Все сотрудники</option>
+        </select>
         <select id="statsPeriod" style="width:120px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border-color:var(--border); outline:none; cursor:pointer;">
           <option value="month">Месяц</option>
           <option value="year">Год</option>
@@ -293,6 +319,7 @@
     <div id="monthChartEmpty" class="chart-empty" style="display:none;">Нет данных за этот период — добавьте записи, чтобы увидеть диаграмму.</div>
     <div class="chart-wrap" id="monthChartWrap"><canvas id="monthChart"></canvas></div>
     <div class="chart-summary" id="monthSummary"></div>
+    <div class="chart-hint" id="monthChartHint" style="display:none;">💡 Нажмите на сегмент диаграммы, чтобы увидеть все задачи этой категории.</div>
   </div>
 
   <div class="insights-card hidden" id="monthInsights">
@@ -347,6 +374,7 @@
         </div>
         <div class="day-chart-container"><canvas id="dayChart"></canvas></div>
         <div class="day-chart-empty" id="dayChartEmpty" style="display:none;">Нет данных для диаграммы.</div>
+        <div class="chart-hint" id="dayChartHint" style="display:none;">💡 Нажмите на сегмент диаграммы, чтобы увидеть все задачи этой категории.</div>
       </div>
 
       <div class="insights-card hidden" id="dayInsights" style="margin-bottom:18px;">
@@ -373,6 +401,27 @@
       <button class="close" id="deepClose" title="Закрыть">✕</button>
     </div>
     <div class="deep-body" id="deepBody"></div>
+  </div>
+</div>
+
+<!-- Модалка: задачи выбранной категории (по клику на сегмент диаграммы) -->
+<div class="overlay" id="chartTasksOverlay">
+  <div class="modal chart-tasks-modal">
+    <div class="modal-head">
+      <div><h2 id="chartTasksTitle">Задачи</h2><p id="chartTasksSub">—</p></div>
+      <button class="close" id="chartTasksClose" title="Закрыть">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="chart-tasks-toolbar">
+        <div class="chart-tabs" id="chartTasksTabs">
+          <button type="button" data-group="day" class="active">День</button>
+          <button type="button" data-group="month">Месяц</button>
+          <button type="button" data-group="year">Год</button>
+        </div>
+        <div class="chart-tasks-total" id="chartTasksTotal"></div>
+      </div>
+      <div id="chartTasksBody" style="padding-bottom:18px;"></div>
+    </div>
   </div>
 </div>
 
@@ -449,7 +498,7 @@
    НАСТРОЙКА СИНХРОНИЗАЦИИ (FIREBASE)
    ============================================================= */
 const FIREBASE_CONFIG = {
-  databaseURL: "https://frd-resanta-default-rtdb.firebaseio.com" // Вставлен ваш URL
+  databaseURL: "https://frd-resanta-default-rtdb.firebaseio.com"
 };
 
 let db = null;
@@ -515,6 +564,7 @@ const deepBody          = document.getElementById('deepBody');
 const deepSubtitle      = document.getElementById('deepSubtitle');
 const monthInsightsGrid = document.getElementById('monthInsightsGrid');
 const dayInsightsGrid   = document.getElementById('dayInsightsGrid');
+const chartTasksOverlay = document.getElementById('chartTasksOverlay');
 
 /* =============================================================
    СОСТОЯНИЕ
@@ -534,6 +584,9 @@ let monthChartMode = 'types';
 let dayChartMode   = 'types';
 let pwCurrentValue = '';
 let forceProfileFill = false;
+let employeeFilter = 'all';
+let chartTasksGroupMode = 'day';
+let chartTasksCurrent = null;
 
 /* =============================================================
    УТИЛИТЫ
@@ -549,7 +602,6 @@ const num    = v => { const n = parseFloat(String(v ?? '').replace(',','.')); re
 const esc    = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
 
-// Функция для создания безопасного ключа из email (заменяем . и @)
 function safeKey(email) {
   return String(email).toLowerCase().replace(/\./g, '_').replace(/@/g, '-at-');
 }
@@ -577,13 +629,11 @@ function saveUsers(){
   if (!db) localStorage.setItem(USERS_KEY, JSON.stringify(users)); 
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ
 function saveAllData(){ 
   if (activeEmail) {
     const key = safeKey(activeEmail);
     if (!allData[key]) allData[key] = {};
     
-    // Принудительно синхронизируем текущие строки с общим объектом
     if (currentKey && currentRows) {
       if (currentRows.length === 0) {
         delete allData[key][currentKey];
@@ -853,10 +903,35 @@ function showAppScreen(){
   }
 }
 
+function populateEmployeeFilter(){
+  const sel = document.getElementById('employeeFilter');
+  if (!sel) return;
+  if (sessionEmail !== ADMIN_EMAIL){ sel.classList.add('hidden'); return; }
+  sel.classList.remove('hidden');
+  
+  const keys = Object.keys(users).sort((a,b) => users[a].email.localeCompare(users[b].email));
+  let html = '<option value="all">Все сотрудники</option>';
+  let found = false;
+  keys.forEach(k => {
+    const email = users[k].email;
+    if (email === employeeFilter) found = true;
+    html += `<option value="${esc(email)}"${email === employeeFilter ? ' selected' : ''}>${esc(getUserDisplayName(email))}</option>`;
+  });
+  sel.innerHTML = html;
+  if (employeeFilter !== 'all' && !found){
+    employeeFilter = 'all';
+    sel.value = 'all';
+  }
+}
+
 function refreshAdminBar(){
   const bar = document.getElementById('adminBar');
   const sel = document.getElementById('accountSelect');
-  if (sessionEmail !== ADMIN_EMAIL){ bar.classList.add('hidden'); return; }
+  if (sessionEmail !== ADMIN_EMAIL){ 
+    bar.classList.add('hidden'); 
+    populateEmployeeFilter();
+    return; 
+  }
   bar.classList.remove('hidden');
   
   const keys = Object.keys(users).sort((a,b) => {
@@ -876,6 +951,7 @@ function refreshAdminBar(){
       return `<option value="${esc(email)}"${email === activeEmail ? ' selected' : ''}>${esc(displayName)}${suffix}</option>`;
     }).join('');
   }
+  populateEmployeeFilter();
 }
 function getBucket(){
   if (!activeEmail) return {};
@@ -920,7 +996,7 @@ function openDay(key){
   const store = getBucket();
   currentKey = key; 
   currentRows = getRows(store, key);
-  store[key] = currentRows; // <--- СИНХРОНИЗАЦИЯ ДЛЯ ЛОКАЛЬНОГО СОХРАНЕНИЯ
+  store[key] = currentRows;
   
   const [y, m, d] = key.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
@@ -931,7 +1007,7 @@ function openDay(key){
   setTimeout(() => { renderDayChart(); renderDayInsights(); }, 30);
 }
 function closeDay(){
-  saveAllData(); // Сохраняем в Firebase (и внутри синхронизируем currentRows в allData)
+  saveAllData();
   overlay.classList.remove('open');
   currentKey = null; currentRows = [];
   renderCalendar(); renderMonthChart(); renderMonthInsights();
@@ -1003,7 +1079,7 @@ function handleEdit(e){
 tbody.addEventListener('input',  handleEdit);
 tbody.addEventListener('change', (e) => {
   handleEdit(e);
-  saveAllData(); // Сохраняем при каждом изменении
+  saveAllData();
 });
 
 tbody.addEventListener('click', e => {
@@ -1043,9 +1119,11 @@ function aggregateDayData(mode){
   return { labels, values };
 }
 function renderDayChart(){
+  const hintEl = document.getElementById('dayChartHint');
   if (!currentRows || !currentRows.length){
     document.getElementById('dayChartEmpty').style.display = 'flex';
     document.querySelector('.day-chart-container').style.display = 'none';
+    if (hintEl) hintEl.style.display = 'none';
     if (dayChart){ dayChart.destroy(); dayChart = null; }
     return;
   }
@@ -1053,17 +1131,29 @@ function renderDayChart(){
   if (!labels.length || !values.some(v => v > 0)){
     document.getElementById('dayChartEmpty').style.display = 'flex';
     document.querySelector('.day-chart-container').style.display = 'none';
+    if (hintEl) hintEl.style.display = 'none';
     if (dayChart){ dayChart.destroy(); dayChart = null; }
     return;
   }
   document.getElementById('dayChartEmpty').style.display = 'none';
   document.querySelector('.day-chart-container').style.display = 'block';
+  if (hintEl) hintEl.style.display = 'block';
   const canvas = document.getElementById('dayChart');
   if (dayChart) dayChart.destroy();
   dayChart = new Chart(canvas.getContext('2d'), {
     type: 'doughnut',
     data: { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '58%',
+    options: { 
+      responsive: true, maintainAspectRatio: false, cutout: '58%',
+      onClick: (evt, elements) => {
+        if (!elements || !elements.length) return;
+        const el = elements[0];
+        const category = labels[el.index];
+        if (category == null) return;
+        const records = currentRows.map(row => ({ email: activeEmail, date: currentKey, row }));
+        const scopeLabel = (modalTitle.textContent || '') + ' · ' + (modalSub.textContent || '');
+        openChartTasks(category, dayChartMode, records, scopeLabel.trim());
+      },
       plugins: {
         legend: { position: 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 },
           generateLabels: chart => chart.data.labels.map((label, i) => ({ text: `${label} — ${chart.data.datasets[0].data[i]} ч`, fillStyle: chart.data.datasets[0].backgroundColor[i], strokeStyle: chart.data.datasets[0].backgroundColor[i], lineWidth: 0, index: i })) } },
@@ -1088,6 +1178,11 @@ document.getElementById('statsPeriod').addEventListener('change', (e) => {
   renderMonthChart();
 });
 document.getElementById('statsDate').addEventListener('change', renderMonthChart);
+document.getElementById('employeeFilter').addEventListener('change', e => {
+  employeeFilter = e.target.value;
+  renderMonthChart();
+  renderMonthInsights();
+});
 
 function collectStatsRecords(){
   const period = document.getElementById('statsPeriod').value;
@@ -1114,10 +1209,16 @@ function collectStatsRecords(){
   const isAdmin = sessionEmail === ADMIN_EMAIL;
   const sources = [];
   if (isAdmin){ 
-    Object.keys(allData).forEach(key => {
+    if (employeeFilter !== 'all'){
+      const key = safeKey(employeeFilter);
       const u = users[key];
       if (u) sources.push({ email: u.email, bucket: allData[key] || {} });
-    });
+    } else {
+      Object.keys(allData).forEach(key => {
+        const u = users[key];
+        if (u) sources.push({ email: u.email, bucket: allData[key] || {} });
+      });
+    }
   }
   else { 
     const key = safeKey(activeEmail);
@@ -1137,12 +1238,13 @@ function collectStatsRecords(){
 function aggregateMonthData(mode){
   const records = collectStatsRecords();
   const isAdmin = sessionEmail === ADMIN_EMAIL;
+  const showStacked = isAdmin && employeeFilter === 'all';
   const presentLabels = new Set();
   records.forEach(({ row }) => { if (rowMinutes(row) <= 0) return; presentLabels.add(categoryOf(row, mode)); });
   const labels = orderedLabels(mode, presentLabels);
-  if (!labels.length) return { labels: [], datasets: [], isAdmin, mode };
+  if (!labels.length) return { labels: [], datasets: [], isAdmin, showStacked, mode };
   
-  if (isAdmin){
+  if (showStacked){
     const usersSet = new Set(); const matrix = new Map();
     records.forEach(({ email, row }) => {
       const mins = rowMinutes(row); if (mins <= 0) return;
@@ -1157,12 +1259,28 @@ function aggregateMonthData(mode){
       borderRadius: 4, 
       borderSkipped: false 
     }));
-    return { labels, datasets, isAdmin, mode, stacked: true };
+    return { labels, datasets, isAdmin, showStacked, mode, stacked: true };
   }
   const map = new Map();
   records.forEach(({ row }) => { const mins = rowMinutes(row); if (mins <= 0) return; const cat = categoryOf(row, mode); map.set(cat, (map.get(cat) || 0) + mins); });
   const values = labels.map(l => round2((map.get(l) || 0) / 60));
-  return { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }], isAdmin, mode };
+  return { labels, datasets: [{ data: values, backgroundColor: labels.map(l => CATEGORY_COLORS[l] || '#94a3b8'), borderColor: '#fff', borderWidth: 2 }], isAdmin, showStacked, mode };
+}
+
+function getChartScopeLabel(){
+  const period = document.getElementById('statsPeriod').value;
+  let scopeLabel;
+  if (period === 'month') scopeLabel = MONTHS[viewDate.getMonth()] + ' ' + viewDate.getFullYear();
+  else if (period === 'year') scopeLabel = viewDate.getFullYear() + ' год';
+  else {
+    const v = document.getElementById('statsDate').value;
+    if (v){
+      const [dy, dm, dd] = v.split('-').map(Number);
+      scopeLabel = dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy;
+    } else scopeLabel = 'день';
+  }
+  if (employeeFilter !== 'all') scopeLabel += ' · ' + getUserDisplayName(employeeFilter);
+  return scopeLabel;
 }
 
 function renderMonthChart(){
@@ -1172,6 +1290,8 @@ function renderMonthChart(){
   
   document.getElementById('monthChartEmpty').style.display = isEmpty ? 'flex' : 'none';
   document.getElementById('monthChartWrap').style.display = isEmpty ? 'none' : 'block';
+  const hintEl = document.getElementById('monthChartHint');
+  if (hintEl) hintEl.style.display = isEmpty ? 'none' : 'block';
   
   const m = viewDate.getMonth(), y = viewDate.getFullYear();
   const isAdmin = sessionEmail === ADMIN_EMAIL;
@@ -1191,13 +1311,24 @@ function renderMonthChart(){
     }
   }
   
-  document.getElementById('monthChartSub').textContent = isAdmin ? 'Администратор — данные всех аккаунтов' : 'Только ваши данные';
+  let subText;
+  if (isAdmin && employeeFilter !== 'all'){
+    subText = 'Фильтр: ' + getUserDisplayName(employeeFilter);
+  } else if (isAdmin){
+    subText = 'Администратор — данные всех аккаунтов';
+  } else {
+    subText = 'Только ваши данные';
+  }
+  document.getElementById('monthChartSub').textContent = subText;
   
   const summaryEl = document.getElementById('monthSummary');
   if (!isEmpty){
     let totalMin = 0; data.datasets.forEach(ds => ds.data.forEach(v => { totalMin += (v || 0) * 60; }));
     const lines = [`Итого: <b>${round2(totalMin/60)} ч</b> за период`];
-    if (isAdmin && data.datasets.length){ lines.push(`Аккаунтов: <b>${data.datasets.length}</b>`); lines.push(`Категорий: <b>${data.labels.length}</b>`); }
+    if (isAdmin && employeeFilter === 'all' && data.datasets.length){ 
+      lines.push(`Аккаунтов: <b>${data.datasets.length}</b>`); 
+      lines.push(`Категорий: <b>${data.labels.length}</b>`); 
+    }
     summaryEl.innerHTML = lines.join(' &nbsp;·&nbsp; ');
   } else summaryEl.innerHTML = '';
   
@@ -1205,13 +1336,21 @@ function renderMonthChart(){
   if (isEmpty) return;
   
   const canvas = document.getElementById('monthChart');
-  const type = isAdmin ? 'bar' : 'doughnut';
+  const type = data.showStacked ? 'bar' : 'doughnut';
   const options = { responsive: true, maintainAspectRatio: false,
+    onClick: (evt, elements) => {
+      if (!elements || !elements.length) return;
+      const el = elements[0];
+      const category = data.labels[el.index];
+      if (category == null) return;
+      const records = collectStatsRecords();
+      openChartTasks(category, monthChartMode, records, getChartScopeLabel());
+    },
     plugins: {
-      legend: { position: isAdmin ? 'bottom' : 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
+      legend: { position: data.showStacked ? 'bottom' : 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
       tooltip: { callbacks: { label: ctx => { const v = ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed; return `${ctx.dataset.label || ''}: ${v} ч`.replace(/^: /,''); } } }
     } };
-  if (isAdmin){ options.scales = { x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40, minRotation: 0 } }, y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } } }; }
+  if (data.showStacked){ options.scales = { x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40, minRotation: 0 } }, y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } } }; }
   else options.cutout = '55%';
   monthChart = new Chart(canvas.getContext('2d'), { type, data: { labels: data.labels, datasets: data.datasets }, options });
 }
@@ -1431,6 +1570,7 @@ function renderMonthInsights(){
   keys.forEach(key => {
     const u = users[key];
     const email = u ? u.email : key; 
+    if (employeeFilter !== 'all' && email !== employeeFilter) return;
     const records = collectRecordsForUser(email, first, last);
     if (!records.length) return;
     const conclusion = buildConclusion(analyzeRecords(records));
@@ -1440,6 +1580,13 @@ function renderMonthInsights(){
   });
   monthInsightsGrid.innerHTML = cards.join('');
   empty.style.display = rendered ? 'none' : 'block';
+  
+  const titleEl = document.getElementById('monthInsightsTitle');
+  if (titleEl){
+    titleEl.textContent = employeeFilter !== 'all'
+      ? 'Заключение: ' + getUserDisplayName(employeeFilter)
+      : 'Заключение по пользователям';
+  }
 }
 
 function renderDayInsights(){
@@ -1728,7 +1875,6 @@ function drawDeepCharts(deep){
   });
 }
 
-/* Надежное делегирование событий */
 function setupInsightsDelegation(){
   [monthInsightsGrid, dayInsightsGrid].forEach(grid => {
     if (!grid || grid.dataset.bound === '1') return;
@@ -1741,6 +1887,134 @@ function setupInsightsDelegation(){
     });
   });
 }
+
+/* =============================================================
+   МОДАЛКА: ЗАДАЧИ ПО КАТЕГОРИИ (клик на сегмент диаграммы)
+   ============================================================= */
+function getCategoryColor(category, mode){
+  if (CATEGORY_COLORS[category]) return CATEGORY_COLORS[category];
+  if (mode === 'interest' || mode === 'complexity') return '#94a3b8';
+  return '#94a3b8';
+}
+
+function openChartTasks(category, mode, sourceRecords, scopeLabel){
+  // sourceRecords — уже в рамках текущего периода/фильтра пользователя
+  const filtered = (sourceRecords || []).filter(({ row }) => {
+    const mins = rowMinutes(row);
+    return mins > 0 && categoryOf(row, mode) === category;
+  });
+  if (!filtered.length){
+    alert('В этой категории нет записей за выбранный период.');
+    return;
+  }
+  
+  chartTasksCurrent = { category, mode, records: filtered, scopeLabel: scopeLabel || '' };
+  chartTasksGroupMode = 'day';
+  
+  const modeTitle = mode === 'types' ? 'Вид работ' : (mode === 'interest' ? 'Интерес' : 'Сложность');
+  document.getElementById('chartTasksTitle').textContent = category;
+  document.getElementById('chartTasksSub').textContent = modeTitle + ' · ' + (scopeLabel || '');
+  
+  document.querySelectorAll('#chartTasksTabs button').forEach(b => {
+    b.classList.toggle('active', b.dataset.group === 'day');
+  });
+  
+  renderChartTasksBody();
+  chartTasksOverlay.classList.add('open');
+}
+
+function closeChartTasks(){
+  chartTasksOverlay.classList.remove('open');
+  chartTasksCurrent = null;
+}
+
+function renderChartTasksBody(){
+  if (!chartTasksCurrent) return;
+  const { category, mode, records } = chartTasksCurrent;
+  
+  const groups = new Map();
+  let totalMin = 0;
+  records.forEach(({ email, date, row }) => {
+    const [y, m, d] = date.split('-').map(Number);
+    let key, label;
+    if (chartTasksGroupMode === 'day'){
+      key = date;
+      label = `${d} ${MONTHS_GEN[m-1]} ${y}`;
+    } else if (chartTasksGroupMode === 'month'){
+      key = `${y}-${pad2(m)}`;
+      label = `${MONTHS[m-1]} ${y}`;
+    } else {
+      key = `${y}`;
+      label = `${y} год`;
+    }
+    if (!groups.has(key)){
+      groups.set(key, { label, items: [], total: 0, sortKey: key });
+    }
+    const g = groups.get(key);
+    const mins = rowMinutes(row);
+    totalMin += mins;
+    g.items.push({
+      email,
+      date,
+      task: (row.task || '').trim() || '(без названия)',
+      mins,
+      start: row.start || '',
+      end: row.end || ''
+    });
+    g.total += mins;
+  });
+  
+  const sortedGroups = [...groups.values()].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+  
+  document.getElementById('chartTasksTotal').innerHTML = 
+    `Найдено задач: <b>${records.length}</b> · Всего: <b>${formatDuration(totalMin) || '0:00'}</b>`;
+  
+  const isAdmin = sessionEmail === ADMIN_EMAIL;
+  const showUser = isAdmin && employeeFilter === 'all';
+  const color = getCategoryColor(category, mode);
+  
+  const groupHtml = sortedGroups.map(g => {
+    // сортировка внутри группы: сначала по дате (новые выше), затем по времени (больше выше)
+    g.items.sort((a, b) => {
+      if (a.date !== b.date) return b.date.localeCompare(a.date);
+      return b.mins - a.mins;
+    });
+    
+    const itemHtml = g.items.map(it => {
+      const dayLabel = it.date.split('-').reverse().join('.');
+      const timeLabel = (it.start && it.end) ? `${it.start}–${it.end}` : '';
+      const taskLabel = it.task + (timeLabel ? ` <span class="ct-time-inline" style="color:var(--muted);font-weight:500;font-size:11.5px;">· ${esc(timeLabel)}</span>` : '');
+      return `
+        <div class="chart-task-row">
+          <div class="ct-date">${esc(dayLabel)}</div>
+          <div class="ct-task">${esc(it.task)}${showUser ? `<span class="ct-user">${esc(getUserDisplayName(it.email))}</span>` : ''}${timeLabel ? `<div class="text-sm" style="margin-top:2px;">${esc(timeLabel)}</div>` : ''}</div>
+          <div class="ct-time">${formatDuration(it.mins) || '0:00'}</div>
+        </div>`;
+    }).join('');
+    
+    return `
+      <div class="chart-task-group">
+        <div class="chart-task-group-head">
+          <div class="cgt-label"><span class="cgt-dot" style="background:${color};"></span>${esc(g.label)}</div>
+          <div class="cgt-stat"><b>${formatDuration(g.total) || '0:00'}</b> · ${g.items.length} задач</div>
+        </div>
+        ${itemHtml}
+      </div>`;
+  }).join('');
+  
+  document.getElementById('chartTasksBody').innerHTML = groupHtml || '<div class="empty-msg">Нет записей.</div>';
+}
+
+document.getElementById('chartTasksTabs').querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('chartTasksTabs').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    chartTasksGroupMode = btn.dataset.group;
+    renderChartTasksBody();
+  });
+});
+document.getElementById('chartTasksClose').addEventListener('click', closeChartTasks);
+chartTasksOverlay.addEventListener('click', e => { if (e.target === chartTasksOverlay) closeChartTasks(); });
 
 /* =============================================================
    НАВИГАЦИЯ
@@ -1860,6 +2134,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   sessionEmail = null; activeEmail = null;
   viewDate = new Date(); viewDate.setDate(1);
   forceProfileFill = false;
+  employeeFilter = 'all';
   showAuthScreen();
 });
 
@@ -1988,7 +2263,8 @@ document.getElementById('forgotPwFromProfile').addEventListener('click', async (
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (deepOverlay.classList.contains('open')) closeDeep();
+  if (chartTasksOverlay.classList.contains('open')) closeChartTasks();
+  else if (deepOverlay.classList.contains('open')) closeDeep();
   else if (profileOverlay.classList.contains('open')) closeProfile();
   else if (pwOverlay.classList.contains('open')) closePwModal();
   else if (overlay.classList.contains('open')) closeDay();
@@ -2017,7 +2293,6 @@ document.addEventListener('keydown', e => {
         showAuthScreen();
       }
       
-      // Подписка на обновления
       db.ref('users').on('value', snap => {
         users = snap.val() || {};
         refreshAdminBar();
