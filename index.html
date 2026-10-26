@@ -561,9 +561,6 @@ function getRows(bucket, key) {
 }
 
 function getUserDisplayName(email) {
-  // Нам нужно найти пользователя по email. В users ключи могут быть безопасными.
-  // Проще перебрать, но для оптимизации можно было бы хранить соответствие.
-  // Но так как список небольшой, переберем.
   for (const key in users) {
     if (users[key].email === email) {
       return (users[key].fio && users[key].fio.trim()) ? users[key].fio.trim() : email;
@@ -579,9 +576,22 @@ function getUserAvatarText(email) {
 function saveUsers(){ 
   if (!db) localStorage.setItem(USERS_KEY, JSON.stringify(users)); 
 }
+
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ
 function saveAllData(){ 
   if (activeEmail) {
     const key = safeKey(activeEmail);
+    if (!allData[key]) allData[key] = {};
+    
+    // Принудительно синхронизируем текущие строки с общим объектом
+    if (currentKey && currentRows) {
+      if (currentRows.length === 0) {
+        delete allData[key][currentKey];
+      } else {
+        allData[key][currentKey] = currentRows;
+      }
+    }
+    
     if (db) {
       db.ref('data/' + key).set(allData[key]);
     } else {
@@ -700,7 +710,7 @@ async function registerUser(rawEmail){
   
   if (db) {
     await db.ref('users/' + key).set(newUser);
-    users[key] = newUser; // локальное обновление
+    users[key] = newUser; 
   } else {
     users[key] = newUser;
     saveUsers();
@@ -910,6 +920,8 @@ function openDay(key){
   const store = getBucket();
   currentKey = key; 
   currentRows = getRows(store, key);
+  store[key] = currentRows; // <--- СИНХРОНИЗАЦИЯ ДЛЯ ЛОКАЛЬНОГО СОХРАНЕНИЯ
+  
   const [y, m, d] = key.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
   modalTitle.textContent = `${d} ${MONTHS_GEN[m-1]} ${y}`;
@@ -919,11 +931,7 @@ function openDay(key){
   setTimeout(() => { renderDayChart(); renderDayInsights(); }, 30);
 }
 function closeDay(){
-  if (currentKey && activeEmail){
-    const store = getBucket();
-    if (currentRows.length === 0) delete store[currentKey];
-  }
-  saveAllData();
+  saveAllData(); // Сохраняем в Firebase (и внутри синхронизируем currentRows в allData)
   overlay.classList.remove('open');
   currentKey = null; currentRows = [];
   renderCalendar(); renderMonthChart(); renderMonthInsights();
@@ -995,7 +1003,7 @@ function handleEdit(e){
 tbody.addEventListener('input',  handleEdit);
 tbody.addEventListener('change', (e) => {
   handleEdit(e);
-  saveAllData();
+  saveAllData(); // Сохраняем при каждом изменении
 });
 
 tbody.addEventListener('click', e => {
