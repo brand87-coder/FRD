@@ -315,7 +315,12 @@
           <tbody id="tbody"></tbody>
         </table>
       </div>
-      <div class="empty-msg" id="emptyMsg" style="display:none;">Записей пока нет — нажмите «Добавить строку».</div>
+      <div class="empty-msg" id="emptyMsg" style="display:none;">Записей пока нет.</div>
+      
+      <!-- Кнопка добавления строки перенесена сюда -->
+      <div style="margin-top: 12px; margin-bottom: 24px; display: flex; justify-content: flex-start;">
+        <button class="btn primary" id="addRowBtn">+ Добавить строку</button>
+      </div>
 
       <div class="day-chart-wrap">
         <div class="day-chart-head">
@@ -342,7 +347,6 @@
       <div class="totals" id="totals"></div>
       <div class="foot-actions">
         <button class="btn ghost" id="exportDayBtn">Экспорт дня (CSV)</button>
-        <button class="btn primary" id="addRowBtn">+ Добавить строку</button>
       </div>
     </div>
   </div>
@@ -388,6 +392,26 @@
         <div class="profile-field"><span>Роль</span><b id="profileRole">—</b></div>
         <div class="profile-field"><span>Дата регистрации</span><b id="profileCreated">—</b></div>
       </div>
+
+      <div class="profile-section">
+        <h3>Личные данные</h3>
+        <form id="profileDataForm" class="profile-form" autocomplete="off">
+          <label>ФИО
+            <input type="text" id="profFio" required placeholder="Иванов Иван Иванович">
+          </label>
+          <label>Должность
+            <input type="text" id="profPosition" required placeholder="Менеджер">
+          </label>
+          <label>Отдел (РЦ)
+            <input type="text" id="profDepartment" required placeholder="Склад №1">
+          </label>
+          <div class="auth-msg" id="profileDataMsg"></div>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn primary">Сохранить данные</button>
+          </div>
+        </form>
+      </div>
+
       <div class="profile-section">
         <h3>Смена пароля</h3>
         <form id="changePwForm" class="profile-form" autocomplete="off">
@@ -490,6 +514,7 @@ let deepChart2     = null;
 let monthChartMode = 'types';
 let dayChartMode   = 'types';
 let pwCurrentValue = '';
+let forceProfileFill = false;
 
 /* =============================================================
    УТИЛИТЫ
@@ -504,6 +529,17 @@ const round2 = x => Math.round(x*100)/100;
 const num    = v => { const n = parseFloat(String(v ?? '').replace(',','.')); return isNaN(n) ? 0 : n; };
 const esc    = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+
+// Получение отображаемого имени (ФИО или Email, если ФИО нет)
+function getUserDisplayName(email) {
+  const u = users[email];
+  return (u && u.fio && u.fio.trim()) ? u.fio.trim() : email;
+}
+// Получение первых двух букв для аватарки
+function getUserAvatarText(email) {
+  const name = getUserDisplayName(email);
+  return name.slice(0, 2).toUpperCase();
+}
 
 function saveUsers(){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
 function saveAllData(){ localStorage.setItem(DATA_KEY, JSON.stringify(allData)); }
@@ -590,7 +626,6 @@ function buildEmailText(email, password){
   return `Логин: ${email}\nПароль: ${password}`;
 }
 async function sendEmail(to, subject, text, password){
-  // Всегда возвращаем false, так как отправка отключена
   return { sent:false, reason:'disabled' };
 }
 
@@ -604,7 +639,7 @@ async function registerUser(rawEmail){
   const password = genPassword(10);
   const salt = genPassword(16);
   const passHash = await hashPassword(password, salt);
-  users[email] = { email, salt, passHash, createdAt: Date.now() };
+  users[email] = { email, salt, passHash, createdAt: Date.now(), fio: '', position: '', department: '' };
   saveUsers();
   if (!allData[email]) allData[email] = {};
   if (Object.keys(users).length === 1 && localStorage.getItem(LEGACY_KEY)){
@@ -667,7 +702,6 @@ function showPasswordResult({ title, email, password, sent }){
   document.getElementById('pwValue').textContent = password;
   document.getElementById('pwEmail').textContent = 'Логин: ' + email;
   const statusEl = document.getElementById('pwStatus');
-  // Так как отправка отключена, sent всегда будет false
   statusEl.className = 'pw-status warn';
   statusEl.innerHTML = 'Пароль сгенерирован. <b>Сохраните его</b> — больше он не отобразится.';
   pwOverlay.classList.add('open');
@@ -705,13 +739,22 @@ function showAuthScreen(){
 function showAppScreen(){
   authScreen.classList.add('hidden');
   appScreen.classList.remove('hidden');
-  document.getElementById('userEmail').textContent = sessionEmail;
-  document.getElementById('userAvatar').textContent = (sessionEmail || '?').slice(0,2).toUpperCase();
+  
+  document.getElementById('userEmail').textContent = getUserDisplayName(sessionEmail);
+  document.getElementById('userAvatar').textContent = getUserAvatarText(sessionEmail);
   document.getElementById('userRole').textContent = sessionEmail === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
+  
   refreshAdminBar();
   renderCalendar();
   renderMonthChart();
   renderMonthInsights();
+  
+  // Проверка обязательных полей профиля
+  const u = users[sessionEmail];
+  if (!u || !u.fio || !u.position || !u.department) {
+    forceProfileFill = true;
+    openProfile();
+  }
 }
 function refreshAdminBar(){
   const bar = document.getElementById('adminBar');
@@ -720,7 +763,12 @@ function refreshAdminBar(){
   bar.classList.remove('hidden');
   const emails = Object.keys(users).sort();
   if (!emails.includes(ADMIN_EMAIL)) emails.unshift(ADMIN_EMAIL);
-  sel.innerHTML = emails.map(e => `<option value="${esc(e)}"${e === activeEmail ? ' selected' : ''}>${esc(e)}${e === ADMIN_EMAIL ? ' (вы)' : ''}</option>`).join('');
+  
+  sel.innerHTML = emails.map(e => {
+    const displayName = getUserDisplayName(e);
+    const suffix = e === ADMIN_EMAIL ? ' (вы)' : '';
+    return `<option value="${esc(e)}"${e === activeEmail ? ' selected' : ''}>${esc(displayName)}${suffix}</option>`;
+  }).join('');
 }
 function getBucket(){
   if (!activeEmail) return {};
@@ -953,7 +1001,13 @@ function aggregateMonthData(mode){
       matrix.set(k, (matrix.get(k) || 0) + mins);
     });
     const usersArr = [...usersSet].sort();
-    const datasets = usersArr.map((email, i) => ({ label: email, data: labels.map(cat => round2((matrix.get(`${email}|${cat}`) || 0) / 60)), backgroundColor: USER_PALETTE[i % USER_PALETTE.length], borderRadius: 4, borderSkipped: false }));
+    const datasets = usersArr.map((email, i) => ({ 
+      label: getUserDisplayName(email), 
+      data: labels.map(cat => round2((matrix.get(`${email}|${cat}`) || 0) / 60)), 
+      backgroundColor: USER_PALETTE[i % USER_PALETTE.length], 
+      borderRadius: 4, 
+      borderSkipped: false 
+    }));
     return { labels, datasets, isAdmin, mode, stacked: true };
   }
   const map = new Map();
@@ -1087,9 +1141,11 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
    КАРТОЧКИ
    ============================================================= */
 function renderInsightCard(email, conclusion){
-  const avatar = (email || '?').slice(0,2).toUpperCase();
+  const avatar = getUserAvatarText(email);
+  const displayName = getUserDisplayName(email);
+  
   if (conclusion.empty){
-    return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(email)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
+    return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(displayName)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
   }
   const topTypesHtml = conclusion.topTypes.length ? conclusion.topTypes.map(t => `<span class="insight-tag">${esc(t.name)} · ${t.share}%</span>`).join('') : '—';
   const interestLine = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `${esc(x.label)} — ${fmtHours(x.mins)}`).join(' · ') || 'нет данных';
@@ -1098,10 +1154,11 @@ function renderInsightCard(email, conclusion){
   const disliked = conclusion.leastLikedType && conclusion.leastLikedType.type !== (conclusion.mostLikedType && conclusion.mostLikedType.type) ? `<span class="insight-tag cool">${esc(conclusion.leastLikedType.type)}</span>` : '—';
   const easiest = conclusion.easiestType ? `<span class="insight-tag ok">${esc(conclusion.easiestType.type)}</span>` : '—';
   const hardest = conclusion.hardestType && conclusion.hardestType.type !== (conclusion.easiestType && conclusion.easiestType.type) ? `<span class="insight-tag cool">${esc(conclusion.hardestType.type)}</span>` : '—';
+  
   return `<div class="insight-card" data-user="${esc(email)}">
     <div class="insight-user">
       <div class="insight-avatar">${esc(avatar)}</div>
-      <div><b>${esc(email)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
+      <div><b>${esc(displayName)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
     </div>
     <div class="insight-list">
       <div class="insight-row"><div class="k">Больше всего занимается</div><div class="v">${topTypesHtml}</div></div>
@@ -1301,11 +1358,12 @@ function openDeepAnalysis(email){
     if (deepChart2) { deepChart2.destroy(); deepChart2 = null; }
 
     const { base, perDay, flags } = deep;
-    const avatar = (email || '?').slice(0,2).toUpperCase();
+    const avatar = getUserAvatarText(email);
+    const displayName = getUserDisplayName(email);
     const personality = buildPersonalityDeep(deep); 
     const m = MONTHS[viewDate.getMonth()].toLowerCase();
     const y = viewDate.getFullYear();
-    deepSubtitle.textContent = `${email} · ${m} ${y}`;
+    deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
 
     const kpiHtml = `<div class="deep-kpis">
       <div class="deep-kpi"><div class="val">${fmtHours(base.totalMin)}</div><div class="lbl">Всего часов</div></div>
@@ -1367,7 +1425,7 @@ function openDeepAnalysis(email){
       </div>`;
 
     deepBody.innerHTML = `
-      <div class="deep-hero"><div class="insight-avatar">${esc(avatar)}</div><div><h3>${esc(email)}</h3><small>Записи за ${m} ${y}</small></div></div>
+      <div class="deep-hero"><div class="insight-avatar">${esc(avatar)}</div><div><h3>${esc(displayName)}</h3><small>Записи за ${m} ${y}</small></div></div>
       ${kpiHtml}
       <div class="deep-section"><h4>Динамика по неделям</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>
       ${heatHtml}
@@ -1456,15 +1514,15 @@ function downloadCsv(rows, filename){
   a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-const HEADER = ['Дата','Что делал','Начало','Конец','Затрачено','Уровень сложности','Уровень интереса','Вид работ','Комментарий'];
+const HEADER = ['Сотрудник','Дата','Что делал','Начало','Конец','Затрачено','Уровень сложности','Уровень интереса','Вид работ','Комментарий'];
 document.getElementById('exportDayBtn').addEventListener('click', () => {
   if (!currentKey) return;
   const rows = [HEADER];
   currentRows.forEach(r => {
     const mins = rowMinutes(r);
-    rows.push([currentKey, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+    rows.push([getUserDisplayName(activeEmail), currentKey, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
   });
-  downloadCsv(rows, `ФРД_${activeEmail}_${currentKey}.csv`);
+  downloadCsv(rows, `ФРД_${getUserDisplayName(activeEmail)}_${currentKey}.csv`);
 });
 document.getElementById('exportAllBtn').addEventListener('click', () => {
   if (!activeEmail){ alert('Нет активного аккаунта.'); return; }
@@ -1474,19 +1532,20 @@ document.getElementById('exportAllBtn').addEventListener('click', () => {
   const rows = [HEADER];
   keys.forEach(k => (bucket[k] || []).forEach(r => {
     const mins = rowMinutes(r);
-    rows.push([k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+    rows.push([getUserDisplayName(activeEmail), k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
   }));
-  downloadCsv(rows, `ФРД_${activeEmail}_все_данные.csv`);
+  downloadCsv(rows, `ФРД_${getUserDisplayName(activeEmail)}_все_данные.csv`);
 });
 document.getElementById('exportAllAccountsBtn').addEventListener('click', () => {
   if (sessionEmail !== ADMIN_EMAIL) return;
   const emails = Object.keys(allData).sort();
-  const rows = [['Аккаунт', ...HEADER]]; let total = 0;
+  const rows = [HEADER]; let total = 0;
   emails.forEach(email => {
     const bucket = allData[email] || {};
+    const name = getUserDisplayName(email);
     Object.keys(bucket).sort().forEach(k => (bucket[k] || []).forEach(r => {
       const mins = rowMinutes(r);
-      rows.push([email, k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
+      rows.push([name, k, r.task || '', r.start || '', r.end || '', formatDuration(mins), r.complexity || '', r.interest || '', r.workType || '', r.comment || '']);
       total++;
     }));
   });
@@ -1546,6 +1605,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem(SESSION_KEY);
   sessionEmail = null; activeEmail = null;
   viewDate = new Date(); viewDate.setDate(1);
+  forceProfileFill = false;
   showAuthScreen();
 });
 
@@ -1555,24 +1615,82 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 function openProfile(){
   if (!sessionEmail) return;
   const u = users[sessionEmail]; if (!u) return;
+  
   document.getElementById('profileEmail').textContent = u.email;
   document.getElementById('profileRole').textContent = u.email === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
   const created = u.createdAt ? new Date(u.createdAt) : null;
   document.getElementById('profileCreated').textContent = created ? `${created.getDate()} ${MONTHS_GEN[created.getMonth()]} ${created.getFullYear()}, ${pad2(created.getHours())}:${pad2(created.getMinutes())}` : '—';
+  
+  document.getElementById('profFio').value = u.fio || '';
+  document.getElementById('profPosition').value = u.position || '';
+  document.getElementById('profDepartment').value = u.department || '';
+  
+  const dataMsg = document.getElementById('profileDataMsg');
+  dataMsg.className = 'auth-msg';
+  if (forceProfileFill) {
+    dataMsg.className = 'auth-msg warn';
+    dataMsg.innerHTML = '<b>Внимание!</b> Заполните личные данные, чтобы продолжить работу.';
+    document.getElementById('profileClose').style.display = 'none';
+  } else {
+    dataMsg.textContent = '';
+    document.getElementById('profileClose').style.display = 'flex';
+  }
+
   document.getElementById('changePwForm').reset();
   document.getElementById('profileMsg').className = 'auth-msg';
   document.getElementById('profileMsg').textContent = '';
   profileOverlay.classList.add('open');
-  setTimeout(() => document.getElementById('curPassword').focus(), 50);
+  setTimeout(() => document.getElementById('profFio').focus(), 50);
 }
+
 function closeProfile(){
+  if (forceProfileFill) return; // Блокируем закрытие, если обязательное заполнение
   profileOverlay.classList.remove('open');
+  document.getElementById('profileDataForm').reset();
   document.getElementById('changePwForm').reset();
+  document.getElementById('profileDataMsg').textContent = '';
   document.getElementById('profileMsg').textContent = '';
 }
+
 document.getElementById('userChip').addEventListener('click', openProfile);
 document.getElementById('profileClose').addEventListener('click', closeProfile);
 profileOverlay.addEventListener('click', e => { if (e.target === profileOverlay) closeProfile(); });
+
+document.getElementById('profileDataForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const msg = document.getElementById('profileDataMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  
+  const fio = document.getElementById('profFio').value.trim();
+  const position = document.getElementById('profPosition').value.trim();
+  const department = document.getElementById('profDepartment').value.trim();
+  
+  if (!fio || !position || !department) {
+    msg.textContent = 'Пожалуйста, заполните все поля.';
+    return;
+  }
+  
+  const u = users[sessionEmail];
+  u.fio = fio;
+  u.position = position;
+  u.department = department;
+  saveUsers();
+  
+  msg.className = 'auth-msg ok';
+  msg.textContent = 'Данные сохранены.';
+  
+  // Обновляем интерфейс
+  document.getElementById('userEmail').textContent = getUserDisplayName(sessionEmail);
+  document.getElementById('userAvatar').textContent = getUserAvatarText(sessionEmail);
+  refreshAdminBar();
+  renderMonthInsights();
+  
+  if (forceProfileFill) {
+    forceProfileFill = false;
+    document.getElementById('profileClose').style.display = 'flex';
+    setTimeout(closeProfile, 1000);
+  }
+});
+
 document.getElementById('changePwForm').addEventListener('submit', async e => {
   e.preventDefault();
   const msg = document.getElementById('profileMsg'); msg.className = 'auth-msg'; msg.textContent = '';
@@ -1586,6 +1704,7 @@ document.getElementById('changePwForm').addEventListener('submit', async e => {
   } catch(err){ msg.className = 'auth-msg'; msg.textContent = err.message || 'Ошибка.'; }
   finally { submitBtn.disabled = false; submitBtn.textContent = 'Сменить пароль'; }
 });
+
 document.getElementById('forgotPwFromProfile').addEventListener('click', async () => {
   if (!sessionEmail) return;
   if (!confirm('Сгенерировать новый пароль?')) return;
@@ -1594,6 +1713,7 @@ document.getElementById('forgotPwFromProfile').addEventListener('click', async (
     closeProfile();
     localStorage.removeItem(SESSION_KEY);
     const wasEmail = sessionEmail; sessionEmail = null; activeEmail = null;
+    forceProfileFill = false;
     showAuthScreen();
     document.getElementById('loginEmail').value = wasEmail;
     const loginMsg = document.getElementById('loginMsg'); loginMsg.className = 'auth-msg ok';
