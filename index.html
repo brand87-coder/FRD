@@ -133,10 +133,19 @@
 
   .insight-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(37,99,235,.14);transform:translateY(-1px);}
   .insight-card .open-hint{font-size:11px;color:var(--accent);font-weight:600;margin-top:auto;display:flex;align-items:center;gap:4px;}
-  .insight-user{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);}
+  .insight-user{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);position:relative;}
   .insight-avatar{width:34px;height:34px;border-radius:9px;background:var(--accent-light);color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:0 0 auto;}
   .insight-user b{font-size:13px;font-weight:700;word-break:break-all;}
   .insight-user small{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
+  
+  /* Мини-спидометр в карточке */
+  .card-gauge-wrap {
+    position: absolute; right: 0; top: 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .card-gauge-body { position: relative; width: 44px; height: 25px; }
+  .card-gauge-val { position: absolute; bottom: -2px; left: 0; width: 100%; text-align: center; font-size: 9.5px; font-weight: 800; color: var(--text); }
+
   .insight-list{display:flex;flex-direction:column;gap:8px;}
   .insight-row{display:flex;gap:8px;font-size:12.5px;line-height:1.45;}
   .insight-row .k{color:var(--muted);flex:0 0 130px;font-weight:600;}
@@ -454,7 +463,7 @@
 
   <div class="insights-card hidden" id="monthInsights">
     <div class="insights-head">
-      <div class="insights-title"><span id="monthInsightsTitle">Заключение по пользователям</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
+      <div class="insights-title"><span id="monthInsightsTitle">Заключение по сотрудникам</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
       <span class="insights-admin-badge">Только для админа</span>
     </div>
     
@@ -1681,49 +1690,59 @@ function buildConclusion(a){
   };
 }
 
+// СИНХРОНИЗИРОВАННАЯ ЛОГИКА ЛИЧНОСТИ И РОЛЕЙ
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
-  const analyticsTypes = ['IT','Оптимизация складских процессов','КРО'];
-  const processTypes = ['АХО','УК','ОТ и ПБ','Персонал','Работа с договорами/Бухгалтерия','Обучение персонала'];
-  const communicativeTypes = ['Работа с почтой','Работа с договорами/Бухгалтерия','Персонал','HD и доп. отгрузки','Рабочие вопросы (текущая операционка)','Совещание/ЗУМ','Обучение','Обучение персонала'];
-  const routineTypes = ['Зарплата','КРО','Работа с почтой'];
+  
+  let title = 'Универсал';
+  let text = 'Способен закрывать разные участки работы.';
   const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
-  const analyticsShare = shareOf(analyticsTypes);
-  const processShare = shareOf(processTypes);
-  const communicativeShare = shareOf(communicativeTypes);
-  const routineShare = shareOf(routineTypes);
-  const highInterest = interestIndex !== null && interestIndex >= 1.6;
-  const lowInterest = interestIndex !== null && interestIndex <= 0.8;
-  const highComplexity = complexityIndex !== null && complexityIndex >= 1.4;
-  const lowComplexity = complexityIndex !== null && complexityIndex <= 0.9;
-  const traits = [];
-  if (analyticsShare >= 0.4) traits.push({ title: 'Аналитик', text: 'Большую часть времени занимается аналитическими и оптимизационными задачами.' });
-  if (communicativeShare >= 0.4) traits.push({ title: 'Коммуникатор', text: 'Много работает с людьми и внешними контактами.' });
-  if (processShare >= 0.4) traits.push({ title: 'Организатор процессов', text: 'Держит в порядке административные и обеспечивающие процессы.' });
-  if (routineShare >= 0.4 && highInterest && !highComplexity) traits.push({ title: 'Исполнитель-стабильщик', text: 'Спокойно выполняет регулярные задачи.' });
-  if (highComplexity && highInterest) traits.push({ title: 'Профессионал-вызов', text: 'Сложные задачи вызывают интерес.' });
-  if (highComplexity && lowInterest) traits.push({ title: 'Зона риска выгорания', text: 'Много сложного и неинтересного.' });
-  if (lowComplexity && highInterest) traits.push({ title: 'Энтузиаст-исполнитель', text: 'Нравится, что делает, задачи легки.' });
-  if (lowComplexity && lowInterest) traits.push({ title: 'Нужна мотивация', text: 'Лёгкие и неинтересные задачи.' });
-  if (!traits.length){
-    if (dominantInterest === 'Интересно') traits.push({ title: 'Увлечённый универсал', text: 'Работа нравится, профиль смешанный.' });
-    else if (dominantInterest === 'Не интересно') traits.push({ title: 'Исполнитель по обязанности', text: 'Задачи выполняются без интереса.' });
-    else traits.push({ title: 'Стабильный исполнитель', text: 'Смешанный профиль и нейтральное отношение.' });
+  
+  const analyticsShare = shareOf(['IT', 'Оптимизация складских процессов', 'КРО']);
+  const mentorShare    = shareOf(['Обучение', 'Обучение персонала']);
+  const troubleShare   = shareOf(['HD и доп. отгрузки']);
+  const controlShare   = shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']);
+  const commShare      = shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']);
+  const routineShare   = shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']);
+
+  if (analyticsShare >= 0.25) {
+      title = 'Аналитик / Инноватор';
+      text = 'Фокусируется на улучшениях, поиске решений и автоматизации.';
+  } else if (mentorShare >= 0.20) {
+      title = 'Наставник / Тренер';
+      text = 'Много времени уделяет обучению коллег и передаче знаний.';
+  } else if (troubleShare >= 0.25) {
+      title = 'Кризис-менеджер / Спасатель';
+      text = 'Быстро реагирует на срочные задачи и решает внезапные проблемы.';
+  } else if (controlShare >= 0.20) {
+      title = 'Аудитор / Хранитель регламентов';
+      text = 'Отвечает за порядок, регламенты, безопасность и документооборот.';
+  } else if (commShare >= 0.25) {
+      title = 'Коммуникатор / Дипломат';
+      text = 'Связующее звено команды, решает вопросы через общение.';
+  } else if (routineShare >= 0.30) {
+      title = 'Реализатор / Организатор';
+      text = 'Держит в порядке процессы, документы и рутину.';
   }
-  return traits[0];
+  
+  return { title, text };
 }
 
 /* =============================================================
    КАРТОЧКИ
    ============================================================= */
-function renderInsightCard(email, conclusion){
+function renderInsightCard(email, conclusion, dayPct){
   const avatar = getUserAvatarText(email);
   const displayName = getUserDisplayName(email);
   
   if (conclusion.empty){
     return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(displayName)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
   }
-  
+
+  const gColor = getGaugeColor(dayPct);
+  const cappedPct = Math.min(100, dayPct);
+  const gOffset = 125.6 - (125.6 * cappedPct / 100);
+
   const topTypesHtml = conclusion.topTypes.map(t => `
     <div style="margin-bottom: 6px;">
       <span class="insight-tag">${esc(t.name)} · ${t.share}%</span>
@@ -1753,7 +1772,18 @@ function renderInsightCard(email, conclusion){
   return `<div class="insight-card" data-user="${esc(email)}">
     <div class="insight-user">
       <div class="insight-avatar">${esc(avatar)}</div>
-      <div><b>${esc(displayName)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
+      <div style="padding-right: 50px;"><b>${esc(displayName)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
+      
+      <div class="card-gauge-wrap" title="Ср. загруж-ть в день: ${dayPct}%">
+        <div class="card-gauge-body">
+            <svg class="gauge-svg" viewBox="0 0 100 55">
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round"/>
+                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="${gColor}" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="${gOffset}"/>
+            </svg>
+            <div class="card-gauge-val">${dayPct}%</div>
+        </div>
+      </div>
+
     </div>
     <div class="insight-list">
       <div class="insight-row"><div class="k">Больше всего занимается</div><div class="v">${topTypesHtml}</div></div>
@@ -1777,7 +1807,8 @@ function renderMonthInsights(){
   
   const { first, last } = monthRangeKeys();
   const keys = Object.keys(allData).sort();
-  let rendered = 0; const cards = [];
+  const items = [];
+  
   keys.forEach(key => {
     const u = users[key];
     const email = u ? u.email : key; 
@@ -1786,21 +1817,40 @@ function renderMonthInsights(){
     if (!records.length) return;
     const conclusion = buildConclusion(analyzeRecords(records));
     if (conclusion.empty) return;
-    cards.push(renderInsightCard(email, conclusion));
-    rendered++;
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const firstDate = getFirstRecordDate(email);
+    const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
+    let totalMinAllTime = 0;
+    const userKey = safeKey(email);
+    const userData = allData[userKey] || {};
+    Object.keys(userData).forEach(dateKey => {
+        let d = parseDateStr(dateKey);
+        if (d <= today) {
+            getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
+        }
+    });
+    const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
+
+    items.push({ email, conclusion, dayPct });
   });
+
+  // Сортируем по проценту загруженности (по убыванию)
+  items.sort((a, b) => b.dayPct - a.dayPct);
+
+  const cardsHtml = items.map(item => renderInsightCard(item.email, item.conclusion, item.dayPct)).join('');
   
-  monthInsightsGrid.innerHTML = cards.join('');
-  empty.style.display = rendered ? 'none' : 'block';
+  monthInsightsGrid.innerHTML = cardsHtml;
+  empty.style.display = items.length ? 'none' : 'block';
   
   const titleEl = document.getElementById('monthInsightsTitle');
   if (titleEl){
     titleEl.textContent = employeeFilter !== 'all'
       ? 'Заключение: ' + getUserDisplayName(employeeFilter)
-      : 'Заключение по пользователям';
+      : 'Заключение по сотрудникам';
   }
   
-  // Обновляем состояние стрелочек после рендера
   updateCarouselButtons();
 }
 
@@ -1811,7 +1861,22 @@ function renderDayInsights(){
   if (!currentKey || !activeEmail){ dayInsightsGrid.innerHTML = ''; return; }
   const key = safeKey(activeEmail);
   const records = getRows(allData[key] || {}, currentKey).map(row => ({ date: currentKey, row }));
-  dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)));
+  
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const firstDate = getFirstRecordDate(activeEmail);
+  const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
+  let totalMinAllTime = 0;
+  const userData = allData[key] || {};
+  Object.keys(userData).forEach(dateKey => {
+      let d = parseDateStr(dateKey);
+      if (d <= today) {
+          getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
+      }
+  });
+  const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
+
+  dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)), dayPct);
 }
 
 /* =============================================================
@@ -1825,14 +1890,12 @@ function updateCarouselButtons() {
   
   if (!wrap || !grid || !prevBtn || !nextBtn) return;
 
-  // Если нет скролла (карточки помещаются), скрываем кнопки
   if (grid.scrollWidth <= grid.clientWidth + 5) {
     prevBtn.classList.add('hidden');
     nextBtn.classList.add('hidden');
     return;
   }
   
-  // Проверка положения скролла
   const isAtStart = grid.scrollLeft <= 5;
   const isAtEnd = grid.scrollLeft >= (grid.scrollWidth - grid.clientWidth - 5);
 
@@ -1840,7 +1903,6 @@ function updateCarouselButtons() {
   nextBtn.classList.toggle('hidden', isAtEnd);
 }
 
-// Привязка событий кнопок
 document.getElementById('monthInsightsPrev').addEventListener('click', () => {
   const grid = document.getElementById('monthInsightsGrid');
   grid.scrollBy({ left: -grid.clientWidth, behavior: 'smooth' });
@@ -1850,7 +1912,6 @@ document.getElementById('monthInsightsNext').addEventListener('click', () => {
   grid.scrollBy({ left: grid.clientWidth, behavior: 'smooth' });
 });
 
-// Слушатель для обновления стрелочек при ручном скролле
 document.getElementById('monthInsightsGrid').addEventListener('scroll', updateCarouselButtons);
 window.addEventListener('resize', updateCarouselButtons);
 
@@ -2002,11 +2063,25 @@ function buildPersonalityDeep(deep){
 
   let teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
   const shareOf = (arr) => arr.reduce((s, t) => s + (base.byType.get(t) || 0), 0) / base.totalMin;
-  if (shareOf(['IT', 'Оптимизация складских процессов', 'КРО']) > 0.3) {
-      teamRole = { title: 'Аналитик / Генератор идей', desc: 'Фокусируется на улучшениях, поиске решений и автоматизации.' };
-  } else if (shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']) > 0.3) {
+  
+  const analyticsShare = shareOf(['IT', 'Оптимизация складских процессов', 'КРО']);
+  const mentorShare = shareOf(['Обучение', 'Обучение персонала']);
+  const troubleShare = shareOf(['HD и доп. отгрузки']);
+  const controlShare = shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']);
+  const commShare = shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']);
+  const routineRoleShare = shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']);
+
+  if (analyticsShare >= 0.25) {
+      teamRole = { title: 'Аналитик / Инноватор', desc: 'Фокусируется на улучшениях, поиске решений и автоматизации.' };
+  } else if (mentorShare >= 0.20) {
+      teamRole = { title: 'Наставник / Тренер', desc: 'Много времени уделяет обучению коллег и передаче знаний.' };
+  } else if (troubleShare >= 0.25) {
+      teamRole = { title: 'Кризис-менеджер / Спасатель', desc: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' };
+  } else if (controlShare >= 0.20) {
+      teamRole = { title: 'Аудитор / Хранитель регламентов', desc: 'Отвечает за порядок, регламенты, безопасность и документооборот.' };
+  } else if (commShare >= 0.25) {
       teamRole = { title: 'Коммуникатор / Дипломат', desc: 'Связующее звено команды, решает вопросы через общение.' };
-  } else if (shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']) > 0.3) {
+  } else if (routineRoleShare >= 0.30) {
       teamRole = { title: 'Реализатор / Организатор', desc: 'Держит в порядке процессы, документы и рутину.' };
   }
 
@@ -2067,12 +2142,9 @@ function openDeepAnalysis(email){
     const y = viewDate.getFullYear();
     deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
 
-    // Расчет загруженности
     const today = new Date();
     today.setHours(0,0,0,0);
     const firstDate = getFirstRecordDate(email);
-    
-    // 1. Средняя в день: с первого дня заполнения по сегодняшний день
     const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
     let totalMinAllTime = 0;
     const userKey = safeKey(email);
