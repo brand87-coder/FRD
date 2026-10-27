@@ -114,9 +114,51 @@
   .deep-hero h3{margin:0;font-size:16px;font-weight:700;word-break:break-all;}
   .deep-hero small{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
   .deep-kpis{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:18px;}
-  .deep-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center;}
+  
+  /* Стили для плашек KPI и всплывающих подсказок */
+  .deep-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center;position:relative;}
+  .deep-kpi.has-hint{cursor:help;}
   .deep-kpi .val{font-size:18px;font-weight:800;color:var(--text);line-height:1.1;}
   .deep-kpi .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+  
+  .deep-kpi .kpi-tooltip {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: pre-wrap;
+    z-index: 100;
+    width: max-content;
+    max-width: 280px;
+    text-align: left;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: opacity 0.2s;
+    pointer-events: none;
+    line-height: 1.4;
+  }
+  .deep-kpi:hover .kpi-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  .deep-kpi .kpi-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+  }
+
   .deep-section{margin-bottom:20px;}
   .deep-section h4{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;}
   .deep-section h4::before{content:'';display:inline-block;width:4px;height:13px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px;}
@@ -1763,13 +1805,31 @@ function openDeepAnalysis(email){
     const y = viewDate.getFullYear();
     deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
 
+    // Вставляем HTML-структуру для подсказок (tooltip) в KPI
     const kpiHtml = `<div class="deep-kpis">
       <div class="deep-kpi"><div class="val">${fmtHours(base.totalMin)}</div><div class="lbl">Всего часов</div></div>
       <div class="deep-kpi"><div class="val">${base.totalRows}</div><div class="lbl">Записей</div></div>
       <div class="deep-kpi"><div class="val">${base.daysCount.size}</div><div class="lbl">Дней</div></div>
       <div class="deep-kpi"><div class="val">${fmtHours(deep.avgPerActiveDay)}</div><div class="lbl">В среднем/день</div></div>
-      <div class="deep-kpi"><div class="val">${deep.interestIndex !== null ? deep.interestIndex.toFixed(2) : '—'}</div><div class="lbl">Индекс интереса</div></div>
-      <div class="deep-kpi"><div class="val">${deep.complexityIndex !== null ? deep.complexityIndex.toFixed(2) : '—'}</div><div class="lbl">Индекс сложности</div></div>
+      
+      <div class="deep-kpi has-hint">
+        <div class="val">${deep.interestIndex !== null ? deep.interestIndex.toFixed(2) : '—'}</div>
+        <div class="lbl">Индекс интереса</div>
+        <div class="kpi-tooltip">Нормы индекса интереса:
+≤ 0.8 — Низкий интерес
+0.8–1.1 — Пониженный (серая зона)
+1.1–1.6 — Рабочая норма
+≥ 1.6 — Высокая вовлечённость</div>
+      </div>
+      
+      <div class="deep-kpi has-hint">
+        <div class="val">${deep.complexityIndex !== null ? deep.complexityIndex.toFixed(2) : '—'}</div>
+        <div class="lbl">Индекс сложности</div>
+        <div class="kpi-tooltip">Нормы индекса сложности:
+≤ 0.9 — Низкая (риск застоя при низком интересе)
+0.9–1.4 — Рабочая норма
+≥ 1.4 — Высокая (риск выгорания / профессионал-вызов)</div>
+      </div>
     </div>`;
 
     const maxDayMins = Math.max(1, ...perDay.map(d => d.mins));
