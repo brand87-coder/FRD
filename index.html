@@ -86,10 +86,52 @@
   .insights-title{font-size:15px;font-weight:700;color:var(--text);}
   .insights-title small{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px;}
   .insights-admin-badge{background:#fef3c7;color:#92400e;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.6px;text-transform:uppercase;}
-  .insights-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(340px, 1fr));gap:14px; align-items: start;}
-  .insight-card{border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:.15s;position:relative;pointer-events:auto;}
+  
+  /* Карусель для карточек */
+  .insights-carousel-wrap { position: relative; display: flex; align-items: center; }
+  .insights-grid { 
+    display: flex; 
+    flex-direction: row; 
+    overflow-x: auto; 
+    scroll-behavior: smooth; 
+    scroll-snap-type: x mandatory; 
+    gap: 14px; 
+    padding: 4px 2px 12px 2px; 
+    width: 100%;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  .insights-grid::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+  
+  .insight-card{ 
+    flex: 0 0 calc(33.333% - 10px); 
+    scroll-snap-align: start; 
+    border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#fff;display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:.15s;position:relative;
+  }
+  @media (max-width: 900px) { .insight-card { flex: 0 0 calc(50% - 7px); } }
+  @media (max-width: 600px) { .insight-card { flex: 0 0 100%; } }
+
+  .carousel-btn { 
+    position: absolute; 
+    z-index: 10; 
+    width: 36px; height: 36px; 
+    border-radius: 50%; 
+    background: #fff; 
+    border: 1px solid var(--border); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; 
+    font-size: 18px; color: var(--text); 
+    transition: 0.2s; 
+    user-select: none;
+  }
+  .carousel-btn:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+  .carousel-btn.prev { left: -18px; }
+  .carousel-btn.next { right: -18px; }
+  .carousel-btn.hidden { opacity: 0; pointer-events: none; }
+
   .insight-card:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(37,99,235,.14);transform:translateY(-1px);}
-  .insight-card .open-hint{font-size:11px;color:var(--accent);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:4px;}
+  .insight-card .open-hint{font-size:11px;color:var(--accent);font-weight:600;margin-top:auto;display:flex;align-items:center;gap:4px;}
   .insight-user{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--border);}
   .insight-avatar{width:34px;height:34px;border-radius:9px;background:var(--accent-light);color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:0 0 auto;}
   .insight-user b{font-size:13px;font-weight:700;word-break:break-all;}
@@ -106,7 +148,8 @@
   .insight-tag.ok{background:#dcfce7;color:#166534;}
   .insight-personality{margin-top:4px;padding:10px 12px;border-radius:10px;background:linear-gradient(135deg,#f8fafc,#eff6ff);border:1px solid #dbeafe;font-size:12.5px;line-height:1.55;}
   .insight-personality b{display:block;font-size:12.5px;color:#1d4ed8;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
-  .insight-empty{text-align:center;color:var(--muted);font-size:13px;padding:26px 12px;border:1px dashed var(--border);border-radius:12px;}
+  .insight-empty{text-align:center;color:var(--muted);font-size:13px;padding:26px 12px;border:1px dashed var(--border);border-radius:12px; width: 100%;}
+  
   .deep-modal{max-width:1080px;width:100%;}
   .deep-body{padding:20px 22px;overflow:auto;flex:1;}
   .deep-hero{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc);border:1px solid #dbeafe;margin-bottom:16px;}
@@ -114,49 +157,21 @@
   .deep-hero h3{margin:0;font-size:16px;font-weight:700;word-break:break-all;}
   .deep-hero small{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
   .deep-kpis{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin-bottom:18px;}
-  
-  /* Стили для плашек KPI и всплывающих подсказок */
   .deep-kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;text-align:center;position:relative;}
   .deep-kpi.has-hint{cursor:help;}
   .deep-kpi .val{font-size:18px;font-weight:800;color:var(--text);line-height:1.1;}
   .deep-kpi .lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
   
   .deep-kpi .kpi-tooltip {
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1e293b;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    white-space: pre-wrap;
-    z-index: 100;
-    width: max-content;
-    max-width: 280px;
-    text-align: left;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: opacity 0.2s;
-    pointer-events: none;
-    line-height: 1.4;
+    visibility: hidden; opacity: 0; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px;
+    white-space: pre-wrap; z-index: 100; width: max-content; max-width: 280px; text-align: left;
+    font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity 0.2s; pointer-events: none; line-height: 1.4;
   }
-  .deep-kpi:hover .kpi-tooltip {
-    visibility: visible;
-    opacity: 1;
-  }
+  .deep-kpi:hover .kpi-tooltip { visibility: visible; opacity: 1; }
   .deep-kpi .kpi-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -6px;
-    border-width: 6px;
-    border-style: solid;
-    border-color: #1e293b transparent transparent transparent;
+    content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
+    border-width: 6px; border-style: solid; border-color: #1e293b transparent transparent transparent;
   }
 
   .deep-section{margin-bottom:20px;}
@@ -368,7 +383,14 @@
       <div class="insights-title"><span id="monthInsightsTitle">Заключение по пользователям</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
       <span class="insights-admin-badge">Только для админа</span>
     </div>
-    <div class="insights-grid" id="monthInsightsGrid"></div>
+    
+    <!-- Обертка карусели с кнопками -->
+    <div class="insights-carousel-wrap" id="monthInsightsWrap">
+      <button type="button" class="carousel-btn prev hidden" id="monthInsightsPrev" title="Назад">‹</button>
+      <div class="insights-grid" id="monthInsightsGrid"></div>
+      <button type="button" class="carousel-btn next hidden" id="monthInsightsNext" title="Вперед">›</button>
+    </div>
+    
     <div class="insight-empty" id="monthInsightsEmpty" style="display:none;">За этот период ещё нет записей ни у одного пользователя.</div>
   </div>
 </div>
@@ -1620,6 +1642,7 @@ function renderMonthInsights(){
     cards.push(renderInsightCard(email, conclusion));
     rendered++;
   });
+  
   monthInsightsGrid.innerHTML = cards.join('');
   empty.style.display = rendered ? 'none' : 'block';
   
@@ -1629,6 +1652,9 @@ function renderMonthInsights(){
       ? 'Заключение: ' + getUserDisplayName(employeeFilter)
       : 'Заключение по пользователям';
   }
+  
+  // Обновляем состояние стрелочек после рендера
+  updateCarouselButtons();
 }
 
 function renderDayInsights(){
@@ -1640,6 +1666,47 @@ function renderDayInsights(){
   const records = getRows(allData[key] || {}, currentKey).map(row => ({ date: currentKey, row }));
   dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)));
 }
+
+/* =============================================================
+   ЛОГИКА КАРУСЕЛИ (СТРЕЛОЧКИ)
+   ============================================================= */
+function updateCarouselButtons() {
+  const wrap = document.getElementById('monthInsightsWrap');
+  const grid = document.getElementById('monthInsightsGrid');
+  const prevBtn = document.getElementById('monthInsightsPrev');
+  const nextBtn = document.getElementById('monthInsightsNext');
+  
+  if (!wrap || !grid || !prevBtn || !nextBtn) return;
+
+  // Если нет скролла (карточки помещаются), скрываем кнопки
+  if (grid.scrollWidth <= grid.clientWidth + 5) {
+    prevBtn.classList.add('hidden');
+    nextBtn.classList.add('hidden');
+    return;
+  }
+  
+  // Проверка положения скролла
+  const isAtStart = grid.scrollLeft <= 5;
+  const isAtEnd = grid.scrollLeft >= (grid.scrollWidth - grid.clientWidth - 5);
+
+  prevBtn.classList.toggle('hidden', isAtStart);
+  nextBtn.classList.toggle('hidden', isAtEnd);
+}
+
+// Привязка событий кнопок
+document.getElementById('monthInsightsPrev').addEventListener('click', () => {
+  const grid = document.getElementById('monthInsightsGrid');
+  grid.scrollBy({ left: -grid.clientWidth, behavior: 'smooth' });
+});
+document.getElementById('monthInsightsNext').addEventListener('click', () => {
+  const grid = document.getElementById('monthInsightsGrid');
+  grid.scrollBy({ left: grid.clientWidth, behavior: 'smooth' });
+});
+
+// Слушатель для обновления стрелочек при ручном скролле
+document.getElementById('monthInsightsGrid').addEventListener('scroll', updateCarouselButtons);
+window.addEventListener('resize', updateCarouselButtons);
+
 
 /* =============================================================
    УГЛУБЛЁННЫЙ АНАЛИЗ
@@ -1805,7 +1872,6 @@ function openDeepAnalysis(email){
     const y = viewDate.getFullYear();
     deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
 
-    // Вставляем HTML-структуру для подсказок (tooltip) в KPI
     const kpiHtml = `<div class="deep-kpis">
       <div class="deep-kpi"><div class="val">${fmtHours(base.totalMin)}</div><div class="lbl">Всего часов</div></div>
       <div class="deep-kpi"><div class="val">${base.totalRows}</div><div class="lbl">Записей</div></div>
