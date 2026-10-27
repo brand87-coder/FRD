@@ -417,7 +417,7 @@
   </header>
 
   <div class="admin-bar hidden" id="adminBar">
-    <label>Просмотр данных аккаунта:<select id="accountSelect"></select></label>
+    <label>Фильтр по сотрудникам:<select id="accountSelect"></select></label>
     <button class="btn ghost" id="exportAllAccountsBtn" style="padding:6px 12px;font-size:13px;">Экспорт всех аккаунтов (CSV)</button>
   </div>
 
@@ -439,9 +439,6 @@
         <small id="monthChartSub">—</small>
       </div>
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <select id="employeeFilter" class="hidden" title="Фильтр по сотруднику" style="width:180px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border:1px solid var(--border); outline:none; cursor:pointer;">
-          <option value="all">Все сотрудники</option>
-        </select>
         <select id="statsPeriod" style="width:120px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border-color:var(--border); outline:none; cursor:pointer;">
           <option value="month">Месяц</option>
           <option value="year">Год</option>
@@ -1100,56 +1097,29 @@ function showAppScreen(){
   }
 }
 
-function populateEmployeeFilter(){
-  const sel = document.getElementById('employeeFilter');
-  if (!sel) return;
-  if (sessionEmail !== ADMIN_EMAIL){ sel.classList.add('hidden'); return; }
-  sel.classList.remove('hidden');
-  
-  const keys = Object.keys(users).sort((a,b) => users[a].email.localeCompare(users[b].email));
-  let html = '<option value="all">Все сотрудники</option>';
-  let found = false;
-  keys.forEach(k => {
-    const email = users[k].email;
-    if (email === employeeFilter) found = true;
-    html += `<option value="${esc(email)}"${email === employeeFilter ? ' selected' : ''}>${esc(getUserDisplayName(email))}</option>`;
-  });
-  sel.innerHTML = html;
-  if (employeeFilter !== 'all' && !found){
-    employeeFilter = 'all';
-    sel.value = 'all';
-  }
-}
-
 function refreshAdminBar(){
   const bar = document.getElementById('adminBar');
   const sel = document.getElementById('accountSelect');
   if (sessionEmail !== ADMIN_EMAIL){ 
     bar.classList.add('hidden'); 
-    populateEmployeeFilter();
     return; 
   }
   bar.classList.remove('hidden');
   
-  const keys = Object.keys(users).sort((a,b) => {
-     const ua = users[a]; const ub = users[b];
-     return ua.email.localeCompare(ub.email);
-  });
+  const keys = Object.keys(users).sort((a,b) => users[a].email.localeCompare(users[b].email));
   
-  if (keys.length === 1) {
-    sel.innerHTML = `<option value="${esc(users[keys[0]].email)}" selected>${esc(getUserDisplayName(users[keys[0]].email))} (вы) — нет других аккаунтов</option>`;
-    sel.disabled = true;
-  } else {
-    sel.disabled = false;
-    sel.innerHTML = keys.map(k => {
-      const email = users[k].email;
-      const displayName = getUserDisplayName(email);
-      const suffix = email === ADMIN_EMAIL ? ' (вы)' : '';
-      return `<option value="${esc(email)}"${email === activeEmail ? ' selected' : ''}>${esc(displayName)}${suffix}</option>`;
-    }).join('');
-  }
-  populateEmployeeFilter();
+  let html = `<option value="all"${employeeFilter === 'all' ? ' selected' : ''}>Все сотрудники</option>`;
+  keys.forEach(k => {
+    const email = users[k].email;
+    const displayName = getUserDisplayName(email);
+    const suffix = email === ADMIN_EMAIL ? ' (вы)' : '';
+    const selected = (employeeFilter !== 'all' && email === employeeFilter) ? ' selected' : '';
+    html += `<option value="${esc(email)}"${selected}>${esc(displayName)}${suffix}</option>`;
+  });
+  sel.innerHTML = html;
+  sel.disabled = false;
 }
+
 function getBucket(){
   if (!activeEmail) return {};
   const key = safeKey(activeEmail);
@@ -1375,11 +1345,6 @@ document.getElementById('statsPeriod').addEventListener('change', (e) => {
   renderMonthChart();
 });
 document.getElementById('statsDate').addEventListener('change', renderMonthChart);
-document.getElementById('employeeFilter').addEventListener('change', e => {
-  employeeFilter = e.target.value;
-  renderMonthChart();
-  renderMonthInsights();
-});
 
 function collectStatsRecords(){
   const period = document.getElementById('statsPeriod').value;
@@ -2526,10 +2491,21 @@ chartTasksOverlay.addEventListener('click', e => { if (e.target === chartTasksOv
 document.getElementById('prevBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() - 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
 document.getElementById('nextBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
 document.getElementById('todayBtn').addEventListener('click', () => { const n = new Date(); viewDate = new Date(n.getFullYear(), n.getMonth(), 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
+
+// Единый фильтр по сотрудникам (влияет на календарь, статистику и карточки)
 document.getElementById('accountSelect').addEventListener('change', e => {
   if (sessionEmail !== ADMIN_EMAIL) return;
-  activeEmail = e.target.value;
-  renderCalendar(); renderMonthChart(); renderMonthInsights();
+  const val = e.target.value;
+  if (val === 'all') {
+    employeeFilter = 'all';
+    activeEmail = sessionEmail; // календарь показывает данные администратора
+  } else {
+    employeeFilter = val;
+    activeEmail = val;
+  }
+  renderCalendar();
+  renderMonthChart();
+  renderMonthInsights();
 });
 
 /* =============================================================
