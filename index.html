@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ФРД — Фотография рабочего дня</title>
+<link rel="icon" type="image/png" href="logo.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -200,7 +201,9 @@
   .psych-header{padding:14px 16px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-bottom:1px solid #bfdbfe;}
   .psych-header h5{margin:0;font-size:14px;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;}
   .psych-grid{padding:16px;display:flex;flex-direction:column;gap:16px;}
-  .psych-block{display:flex;flex-direction:column;gap:6px;}
+  .psych-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width:600px) { .psych-grid-2 { grid-template-columns: 1fr; } }
+  .psych-block{display:flex;flex-direction:column;gap:6px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border);}
   .psych-title{font-size:13px;font-weight:700;color:var(--text);}
   .psych-title span{color:#1d4ed8;}
   .psych-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;margin-left:6px;}
@@ -1414,7 +1417,30 @@ function renderMonthChart(){
       legend: { position: data.showStacked ? 'bottom' : 'right', labels: { boxWidth: 12, boxHeight: 12, padding: 10, font: { size: 11 } } },
       tooltip: { callbacks: { label: ctx => { const v = ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed; return `${ctx.dataset.label || ''}: ${v} ч`.replace(/^: /,''); } } }
     } };
-  if (data.showStacked){ options.scales = { x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 40, minRotation: 0 } }, y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } } }; }
+  if (data.showStacked){ 
+    options.scales = { 
+      x: { 
+        stacked: true, 
+        grid: { display: false }, 
+        ticks: { 
+          font: { size: 10 }, 
+          autoSkip: false, 
+          maxRotation: 0, 
+          minRotation: 0, 
+          align: 'center',
+          callback: function(value) {
+            const label = this.getLabelForValue(value);
+            return label.split(' '); // Переносим по словам
+          }
+        } 
+      }, 
+      y: { 
+        stacked: true, 
+        beginAtZero: true, 
+        ticks: { font: { size: 10 } } 
+      } 
+    }; 
+  }
   else options.cutout = '55%';
   monthChart = new Chart(canvas.getContext('2d'), { type, data: { labels: data.labels, datasets: data.datasets }, options });
 }
@@ -1777,11 +1803,11 @@ function analyzeDeep(email){
     stability = { mean, std, cv: mean ? std / mean : 0 };
   }
   const conclusion = buildConclusion(base);
-  return { email, base, conclusion, perDay, weeks, tasks, typeStats, flags, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, stability, interestIndex, complexityIndex, daysInMonth, monthY: y, monthM: m };
+  return { email, base, conclusion, perDay, weeks, tasks, typeStats, flags, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, stability, interestIndex, complexityIndex, daysInMonth, monthY: y, monthM: m, records };
 }
 
 function buildPersonalityDeep(deep){
-  const { base, conclusion, interestIndex, complexityIndex, typeStats } = deep;
+  const { base, conclusion, interestIndex, complexityIndex, typeStats, records } = deep;
   const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
   base.byType.forEach((mins, type) => {
     if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
@@ -1807,10 +1833,10 @@ function buildPersonalityDeep(deep){
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
   
+  // 1. Выгорание
   let burnoutLevel = 'Низкий';
   let burnoutClass = 'ok';
   let burnoutText = 'Уровень стресса в норме, задачи разнообразны и соответствуют возможностям.';
-
   if (interestIndex !== null && complexityIndex !== null) {
     if (complexityIndex > 1.3 && interestIndex < 1.0) {
       burnoutLevel = 'Высокий'; burnoutClass = 'bad';
@@ -1824,10 +1850,10 @@ function buildPersonalityDeep(deep){
     }
   }
 
+  // 2. Неопределенность
   let uncLevel = 'Средняя';
   let uncClass = 'warn';
   let uncText = 'Спокойно относится к задачам средней сложности, но может теряться при резких изменениях.';
-
   if (complexityIndex !== null) {
     if (complexityIndex >= 1.4) {
       uncLevel = 'Высокая'; uncClass = 'ok';
@@ -1838,6 +1864,62 @@ function buildPersonalityDeep(deep){
     }
   }
 
+  // 3. Когнитивный стиль (Deep Work vs Multitasking)
+  const avgMinsPerRow = base.totalRows ? base.totalMin / base.totalRows : 0;
+  let cogStyle = { title: 'Смешанный', desc: 'Способен переключаться между разными типами задач.' };
+  if (complexityIndex !== null && avgMinsPerRow > 60 && complexityIndex >= 1.2) {
+      cogStyle = { title: 'Глубокое погружение (Deep Work)', desc: 'Предпочитает длительные, сложные задачи. Требует времени без отвлечений.' };
+  } else if (complexityIndex !== null && avgMinsPerRow < 30 && complexityIndex <= 0.9) {
+      cogStyle = { title: 'Мультизадачность', desc: 'Быстро переключается между короткими задачами. Хорош в операционке.' };
+  }
+
+  // 4. Мотивация
+  let motivation = { title: 'Смешанная', desc: 'Разные факторы влияют на вовлеченность.' };
+  if (interestIndex !== null && interestIndex >= 1.5) {
+      motivation = { title: 'Внутренняя (Интерес)', desc: 'Движет сам процесс и увлеченность задачей.' };
+  } else if (complexityIndex !== null && complexityIndex >= 1.4) {
+      motivation = { title: 'Мотивация вызовом', desc: 'Стимулирует преодоление сложностей и амбициозные цели.' };
+  } else if (interestIndex !== null && interestIndex <= 0.8 && complexityIndex !== null && complexityIndex <= 0.9) {
+      motivation = { title: 'Дисциплина / Обязанность', desc: 'Выполняет работу вне зависимости от интереса, опираясь на регламенты.' };
+  }
+
+  // 5. Командная роль
+  let teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
+  const shareOf = (arr) => arr.reduce((s, t) => s + (base.byType.get(t) || 0), 0) / base.totalMin;
+  if (shareOf(['IT', 'Оптимизация складских процессов', 'КРО']) > 0.3) {
+      teamRole = { title: 'Аналитик / Генератор идей', desc: 'Фокусируется на улучшениях, поиске решений и автоматизации.' };
+  } else if (shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']) > 0.3) {
+      teamRole = { title: 'Коммуникатор / Дипломат', desc: 'Связующее звено команды, решает вопросы через общение.' };
+  } else if (shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']) > 0.3) {
+      teamRole = { title: 'Реализатор / Организатор', desc: 'Держит в порядке процессы, документы и рутину.' };
+  }
+
+  // 6. Хронотип (Пик активности)
+  let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
+  let morningMin = 0, eveningMin = 0;
+  if (records) {
+      records.forEach(({ row }) => {
+         if (row.start && row.complexity === 'Сложно') {
+             const hour = parseInt(row.start.split(':')[0], 10);
+             const mins = rowMinutes(row);
+             if (hour < 12) morningMin += mins;
+             else if (hour >= 15) eveningMin += mins;
+         }
+      });
+  }
+  if (morningMin > eveningMin && morningMin > 30) peakTime = { title: 'Жаворонок (Пик утром)', desc: 'Сложные задачи лучше даются до обеда.' };
+  else if (eveningMin > morningMin && eveningMin > 30) peakTime = { title: 'Сова (Пик вечером)', desc: 'Сложные задачи лучше даются во второй половине дня.' };
+  else if (morningMin > 0 || eveningMin > 0) peakTime = { title: 'Ровная работоспособность', desc: 'Сложные задачи распределены равномерно.' };
+
+  // 7. Зоны роста
+  let growthAreas = [];
+  if (interestIndex <= 1.0) growthAreas.push('Повышение вовлеченности: геймификация или новые задачи.');
+  if (complexityIndex <= 0.9 && interestIndex <= 1.0) growthAreas.push('Добавление задач на развитие, чтобы избежать застоя.');
+  if (routineShare > 0.5) growthAreas.push('Автоматизация рутины для освобождения времени.');
+  if (avgMinsPerRow < 30 && complexityIndex > 1.2) growthAreas.push('Борьба с фрагментацией внимания при высокой сложности.');
+  if (!growthAreas.length) growthAreas.push('Профиль сбалансирован. Поддерживайте текущий уровень.');
+
+  // 8. Старые рекомендации
   const recs = [];
   if (topRiasec === 'I') recs.push('Давать больше задач на автоматизацию, аналитику и стратегическое планирование.');
   if (topRiasec === 'S') recs.push('Вовлекать в коммуникацию с людьми, наставничество или разрешение конфликтов.');
@@ -1847,7 +1929,7 @@ function buildPersonalityDeep(deep){
   if (uncLevel === 'Низкая') recs.push('Максимально четко ставить задачи, использовать чек-листы и регламенты.');
   if (uncLevel === 'Высокая') recs.push('Привлекать к проектам с неопределенными требованиями на этапе их зарождения.');
 
-  return { riasec: riasecResult, burnout: { level: burnoutLevel, class: burnoutClass, text: burnoutText }, uncertainty: { level: uncLevel, class: uncClass, text: uncText }, recs };
+  return { riasec: riasecResult, burnout: { level: burnoutLevel, class: burnoutClass, text: burnoutText }, uncertainty: { level: uncLevel, class: uncClass, text: uncText }, cogStyle, motivation, teamRole, peakTime, growthAreas, recs };
 }
 
 function openDeepAnalysis(email){
@@ -1922,28 +2004,62 @@ function openDeepAnalysis(email){
 
     const personalityHtml = `
       <div class="deep-section">
-        <h4>Психологический портрет (на основе RIASEC и Маслач)</h4>
+        <h4>Расширенный психологический портрет</h4>
         <div class="deep-personality">
-          <div class="psych-header"><h5>Профиль личности</h5></div>
+          <div class="psych-header"><h5>Профиль личности и рабочего стиля</h5></div>
           <div class="psych-grid">
+            
             <div class="psych-block">
-              <div class="psych-title">Тип по Голланду: <span>${esc(personality.riasec.name)}</span></div>
+              <div class="psych-title">Тип по Голланду (RIASEC): <span>${esc(personality.riasec.name)}</span></div>
               <div class="psych-desc">${esc(personality.riasec.desc)}</div>
             </div>
+
+            <div class="psych-grid-2">
+              <div class="psych-block">
+                 <div class="psych-title">Когнитивный стиль:</div>
+                 <div class="psych-desc"><b>${esc(personality.cogStyle.title)}</b><br>${esc(personality.cogStyle.desc)}</div>
+              </div>
+              <div class="psych-block">
+                 <div class="psych-title">Мотивация:</div>
+                 <div class="psych-desc"><b>${esc(personality.motivation.title)}</b><br>${esc(personality.motivation.desc)}</div>
+              </div>
+            </div>
+
+            <div class="psych-grid-2">
+              <div class="psych-block">
+                 <div class="psych-title">Командная роль:</div>
+                 <div class="psych-desc"><b>${esc(personality.teamRole.title)}</b><br>${esc(personality.teamRole.desc)}</div>
+              </div>
+              <div class="psych-block">
+                 <div class="psych-title">Пик активности (Хронотип):</div>
+                 <div class="psych-desc"><b>${esc(personality.peakTime.title)}</b><br>${esc(personality.peakTime.desc)}</div>
+              </div>
+            </div>
+
             <div class="psych-block">
               <div class="psych-title">Риск выгорания: <span class="psych-badge ${personality.burnout.class}">${personality.burnout.level}</span></div>
               <div class="psych-desc">${esc(personality.burnout.text)}</div>
             </div>
+            
             <div class="psych-block">
               <div class="psych-title">Толерантность к неопределенности: <span class="psych-badge ${personality.uncertainty.class}">${personality.uncertainty.level}</span></div>
               <div class="psych-desc">${esc(personality.uncertainty.text)}</div>
             </div>
+            
             <div class="psych-block">
-              <div class="psych-title">Рекомендации по управлению:</div>
+              <div class="psych-title">Зоны роста и рекомендации:</div>
+              <ul class="psych-ul">
+                ${personality.growthAreas.map(r => `<li>${esc(r)}</li>`).join('')}
+              </ul>
+            </div>
+
+            <div class="psych-block">
+              <div class="psych-title">Управленческие рекомендации:</div>
               <ul class="psych-ul">
                 ${personality.recs.map(r => `<li>${esc(r)}</li>`).join('')}
               </ul>
             </div>
+            
           </div>
         </div>
       </div>`;
