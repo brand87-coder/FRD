@@ -175,6 +175,75 @@
     border-width: 6px; border-style: solid; border-color: #1e293b transparent transparent transparent;
   }
 
+  /* Спидометры загруженности */
+  .workload-gauges {
+    display: flex;
+    gap: 16px;
+    margin-left: auto;
+  }
+  .gauge-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    min-width: 110px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.02);
+    cursor: help;
+    position: relative;
+  }
+  .gauge-title {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  .gauge-body {
+    position: relative;
+    width: 80px;
+    height: 45px;
+  }
+  .gauge-svg {
+    width: 100%;
+    height: 100%;
+  }
+  .gauge-val {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  
+  /* Подсказка для спидометра (появляется снизу) */
+  .gauge-item .kpi-tooltip {
+    visibility: hidden; opacity: 0; position: absolute; top: 100%; margin-top: 8px;
+    left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px;
+    white-space: pre-wrap; z-index: 100; width: max-content; max-width: 220px; text-align: left;
+    font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: opacity 0.2s; pointer-events: none; line-height: 1.4;
+  }
+  .gauge-item:hover .kpi-tooltip { visibility: visible; opacity: 1; }
+  .gauge-item .kpi-tooltip::after {
+    content: ''; position: absolute; bottom: 100%; left: 50%; margin-left: -6px;
+    border-width: 6px; border-style: solid; border-color: transparent transparent #1e293b transparent;
+  }
+  
+  /* Выравнивание подсказки для последнего спидометра по правому краю */
+  .gauge-item:last-child .kpi-tooltip {
+    left: auto; right: 0; transform: none;
+  }
+  .gauge-item:last-child .kpi-tooltip::after {
+    left: auto; right: 20px;
+  }
+
   .deep-section{margin-bottom:20px;}
   .deep-section h4{margin:0 0 10px;font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;}
   .deep-section h4::before{content:'';display:inline-block;width:4px;height:13px;background:var(--accent);border-radius:2px;margin-right:8px;vertical-align:-2px;}
@@ -287,6 +356,8 @@
     .app{padding:16px 10px 40px;} .cell{min-height:62px;padding:6px;border-radius:9px;} .daynum{font-size:12px;} .badge{font-size:10px;padding:1px 5px;} .weekdays div{font-size:10px;} .overlay{padding:0;} .modal{max-height:100vh;height:100%;border-radius:0;width:100%;} .brand h1{font-size:16px;} .brand p{display:none;} .auth-card{padding:22px;} .user-chip .meta b{max-width:130px;} .chart-wrap{height:300px;} .insight-row .k{flex:0 0 110px;font-size:12px;} .deep-two{grid-template-columns:1fr;}
     .chart-task-row{grid-template-columns:80px 1fr 65px;font-size:12px;}
     .chart-tasks-toolbar{flex-direction:column;align-items:stretch;}
+    .workload-gauges { margin-left: 0; width: 100%; justify-content: space-between; flex-wrap: wrap; }
+    .gauge-item { flex: 1; min-width: 80px; }
   }
 </style>
 </head>
@@ -585,7 +656,7 @@ const DATA_KEY    = 'frd_data_v2';
 const SESSION_KEY = 'frd_session_v1';
 
 /* =============================================================
-   СПРАВОЧНИКИ
+   СПРАВОЧНИКИ И КАЛЕНДАРЬ
    ============================================================= */
 const MONTHS     = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -609,6 +680,13 @@ const CATEGORY_COLORS = {
   'Не указано':'#94a3b8',
   'Не интересно':'#ef4444','Нейтрально':'#f59e0b','Интересно':'#22c55e',
   'Легко':'#22c55e','Средне':'#f59e0b','Сложно':'#ef4444'
+};
+
+// Производственный календарь (праздничные дни)
+const HOLIDAYS = {
+  2024: ['2024-01-01','2024-01-02','2024-01-03','2024-01-04','2024-01-05','2024-01-08','2024-02-23','2024-03-08','2024-04-29','2024-04-30','2024-05-01','2024-05-09','2024-05-10','2024-06-12','2024-11-04'],
+  2025: ['2025-01-01','2025-01-02','2025-01-03','2025-01-06','2025-01-07','2025-01-08','2025-02-24','2025-03-10','2025-05-01','2025-05-02','2025-05-08','2025-05-09','2025-06-12','2025-06-13','2025-11-03','2025-11-04'],
+  2026: ['2026-01-01','2026-01-02','2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-02-23','2026-03-09','2026-05-01','2026-05-11','2026-06-12','2026-11-04']
 };
 
 /* =============================================================
@@ -668,6 +746,49 @@ const round2 = x => Math.round(x*100)/100;
 const num    = v => { const n = parseFloat(String(v ?? '').replace(',','.')); return isNaN(n) ? 0 : n; };
 const esc    = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+
+function parseDateStr(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function countWorkingDays(start, end) {
+  let count = 0;
+  let current = new Date(start);
+  current.setHours(0,0,0,0);
+  let endStripped = new Date(end);
+  endStripped.setHours(0,0,0,0);
+  
+  while (current <= endStripped) {
+    const day = current.getDay();
+    const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
+    const year = current.getFullYear();
+    
+    const isWeekend = (day === 0 || day === 6);
+    const isHoliday = (HOLIDAYS[year] || []).includes(dateStr);
+    
+    if (!isWeekend && !isHoliday) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+function getGaugeColor(pct) {
+  if (pct > 100) return '#ef4444'; // Красный (переработка)
+  if (pct >= 85) return '#10b981'; // Зеленый (оптимально)
+  if (pct >= 50) return '#2563eb'; // Синий (норма)
+  return '#f59e0b'; // Оранжевый (недогруз)
+}
+
+function getFirstRecordDate(email) {
+   const key = safeKey(email);
+   const bucket = allData[key] || {};
+   const keys = Object.keys(bucket).sort();
+   if (keys.length === 0) return new Date();
+   return parseDateStr(keys[0]);
+}
 
 function safeKey(email) {
   return String(email).toLowerCase().replace(/\./g, '_').replace(/@/g, '-at-');
@@ -763,8 +884,8 @@ function getTop3Tasks(map) {
   return [...map.entries()]
     .sort((a,b) => b[1] - a[1])
     .slice(0,3)
-    .map(([task, mins]) => `${task} (${fmtHours(mins)})`)
-    .join('; ');
+    .map(([task, mins]) => `· ${esc(task)} (${fmtHours(mins)})`)
+    .join('<br>');
 }
 
 /* =============================================================
@@ -1606,21 +1727,21 @@ function renderInsightCard(email, conclusion){
   const topTypesHtml = conclusion.topTypes.map(t => `
     <div style="margin-bottom: 6px;">
       <span class="insight-tag">${esc(t.name)} · ${t.share}%</span>
-      ${t.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(t.topTasks)}</div>` : ''}
+      ${t.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${t.topTasks}</div>` : ''}
     </div>
   `).join('') || '—';
 
   const interestHtml = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `
     <div style="margin-bottom: 6px;">
       <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
-      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(x.topTasks)}</div>` : ''}
+      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${x.topTasks}</div>` : ''}
     </div>
   `).join('') || 'нет данных';
 
   const complexHtml = conclusion.complexOrdered.filter(x => x.mins > 0).map(x => `
     <div style="margin-bottom: 6px;">
       <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
-      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:2px;">${esc(x.topTasks)}</div>` : ''}
+      ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${x.topTasks}</div>` : ''}
     </div>
   `).join('') || 'нет данных';
 
@@ -1833,7 +1954,6 @@ function buildPersonalityDeep(deep){
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
   
-  // 1. Выгорание
   let burnoutLevel = 'Низкий';
   let burnoutClass = 'ok';
   let burnoutText = 'Уровень стресса в норме, задачи разнообразны и соответствуют возможностям.';
@@ -1850,7 +1970,6 @@ function buildPersonalityDeep(deep){
     }
   }
 
-  // 2. Неопределенность
   let uncLevel = 'Средняя';
   let uncClass = 'warn';
   let uncText = 'Спокойно относится к задачам средней сложности, но может теряться при резких изменениях.';
@@ -1864,7 +1983,6 @@ function buildPersonalityDeep(deep){
     }
   }
 
-  // 3. Когнитивный стиль (Deep Work vs Multitasking)
   const avgMinsPerRow = base.totalRows ? base.totalMin / base.totalRows : 0;
   let cogStyle = { title: 'Смешанный', desc: 'Способен переключаться между разными типами задач.' };
   if (complexityIndex !== null && avgMinsPerRow > 60 && complexityIndex >= 1.2) {
@@ -1873,7 +1991,6 @@ function buildPersonalityDeep(deep){
       cogStyle = { title: 'Мультизадачность', desc: 'Быстро переключается между короткими задачами. Хорош в операционке.' };
   }
 
-  // 4. Мотивация
   let motivation = { title: 'Смешанная', desc: 'Разные факторы влияют на вовлеченность.' };
   if (interestIndex !== null && interestIndex >= 1.5) {
       motivation = { title: 'Внутренняя (Интерес)', desc: 'Движет сам процесс и увлеченность задачей.' };
@@ -1883,7 +2000,6 @@ function buildPersonalityDeep(deep){
       motivation = { title: 'Дисциплина / Обязанность', desc: 'Выполняет работу вне зависимости от интереса, опираясь на регламенты.' };
   }
 
-  // 5. Командная роль
   let teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
   const shareOf = (arr) => arr.reduce((s, t) => s + (base.byType.get(t) || 0), 0) / base.totalMin;
   if (shareOf(['IT', 'Оптимизация складских процессов', 'КРО']) > 0.3) {
@@ -1894,7 +2010,6 @@ function buildPersonalityDeep(deep){
       teamRole = { title: 'Реализатор / Организатор', desc: 'Держит в порядке процессы, документы и рутину.' };
   }
 
-  // 6. Хронотип (Пик активности)
   let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
   let morningMin = 0, eveningMin = 0;
   if (records) {
@@ -1911,7 +2026,6 @@ function buildPersonalityDeep(deep){
   else if (eveningMin > morningMin && eveningMin > 30) peakTime = { title: 'Сова (Пик вечером)', desc: 'Сложные задачи лучше даются во второй половине дня.' };
   else if (morningMin > 0 || eveningMin > 0) peakTime = { title: 'Ровная работоспособность', desc: 'Сложные задачи распределены равномерно.' };
 
-  // 7. Зоны роста
   let growthAreas = [];
   if (interestIndex <= 1.0) growthAreas.push('Повышение вовлеченности: геймификация или новые задачи.');
   if (complexityIndex <= 0.9 && interestIndex <= 1.0) growthAreas.push('Добавление задач на развитие, чтобы избежать застоя.');
@@ -1919,7 +2033,6 @@ function buildPersonalityDeep(deep){
   if (avgMinsPerRow < 30 && complexityIndex > 1.2) growthAreas.push('Борьба с фрагментацией внимания при высокой сложности.');
   if (!growthAreas.length) growthAreas.push('Профиль сбалансирован. Поддерживайте текущий уровень.');
 
-  // 8. Старые рекомендации
   const recs = [];
   if (topRiasec === 'I') recs.push('Давать больше задач на автоматизацию, аналитику и стратегическое планирование.');
   if (topRiasec === 'S') recs.push('Вовлекать в коммуникацию с людьми, наставничество или разрешение конфликтов.');
@@ -1953,6 +2066,48 @@ function openDeepAnalysis(email){
     const m = MONTHS[viewDate.getMonth()].toLowerCase();
     const y = viewDate.getFullYear();
     deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
+
+    // Расчет загруженности
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const firstDate = getFirstRecordDate(email);
+    
+    // 1. Средняя в день: с первого дня заполнения по сегодняшний день
+    const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
+    let totalMinAllTime = 0;
+    const userKey = safeKey(email);
+    const userData = allData[userKey] || {};
+    Object.keys(userData).forEach(dateKey => {
+        let d = parseDateStr(dateKey);
+        if (d <= today) {
+            getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
+        }
+    });
+    const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
+
+    function buildGauge(title, pct) {
+      const color = getGaugeColor(pct);
+      const cappedPct = Math.min(100, pct);
+      const offset = 125.6 - (125.6 * cappedPct / 100);
+      return `
+      <div class="gauge-item">
+          <div class="gauge-title">${title}</div>
+          <div class="gauge-body">
+              <svg class="gauge-svg" viewBox="0 0 100 55">
+                  <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round"/>
+                  <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="${offset}"/>
+              </svg>
+              <div class="gauge-val">${pct}%</div>
+          </div>
+          <div class="kpi-tooltip">Оранжевый: Недогруз (<50%)<br>Синий: Норма (50-84%)<br>Зеленый: Оптимально (85-100%)<br>Красный: Переработка (>100%)</div>
+      </div>`;
+    }
+
+    const gaugesHtml = `
+      <div class="workload-gauges">
+         ${buildGauge('День', dayPct)}
+      </div>
+    `;
 
     const kpiHtml = `<div class="deep-kpis">
       <div class="deep-kpi"><div class="val">${fmtHours(base.totalMin)}</div><div class="lbl">Всего часов</div></div>
@@ -2065,7 +2220,13 @@ function openDeepAnalysis(email){
       </div>`;
 
     deepBody.innerHTML = `
-      <div class="deep-hero"><div class="insight-avatar">${esc(avatar)}</div><div><h3>${esc(displayName)}</h3><small>Записи за ${m} ${y}</small></div></div>
+      <div class="deep-hero">
+         <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <div class="insight-avatar">${esc(avatar)}</div>
+            <div><h3>${esc(displayName)}</h3><small>Записи за ${m} ${y}</small></div>
+         </div>
+         ${gaugesHtml}
+      </div>
       ${kpiHtml}
       <div class="deep-section"><h4>Динамика по неделям</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>
       ${heatHtml}
