@@ -42,7 +42,11 @@
   .email-status{font-size:11.5px;padding:8px 10px;border-radius:8px;margin-bottom:14px;line-height:1.45;}
   .email-status.ok{background:#dcfce7;color:#166534;}
   .email-status.warn{background:#fef3c7;color:#92400e;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+  
+  /* Закрепленная верхняя панель */
+  .sticky-top-area { position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: 16px; margin-top: -16px; padding-bottom: 16px; }
+  
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:0;}
   .brand-wrap{display:flex;align-items:center;gap:14px;}
   .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .user-chip{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:5px 12px 5px 5px;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit;color:inherit;}
@@ -51,7 +55,7 @@
   .user-chip .meta{display:flex;flex-direction:column;line-height:1.2;text-align:left;}
   .user-chip .meta b{font-size:12.5px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .user-chip .meta span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-  .admin-bar{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;}
+  .admin-bar{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px 14px;margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;}
   .admin-bar label{display:flex;align-items:center;gap:8px;font-weight:600;color:#92400e;}
   .admin-bar select{width:auto;min-width:280px;}
   .calendar-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 4px 20px rgba(15,23,42,.05);}
@@ -367,6 +371,7 @@
     .chart-tasks-toolbar{flex-direction:column;align-items:stretch;}
     .workload-gauges { margin-left: 0; width: 100%; justify-content: space-between; flex-wrap: wrap; }
     .gauge-item { flex: 1; min-width: 80px; }
+    .sticky-top-area { padding-top: 10px; margin-top: -10px; padding-bottom: 10px; }
   }
 </style>
 </head>
@@ -401,24 +406,26 @@
 </div>
 
 <div id="appScreen" class="app hidden">
-  <header class="topbar">
-    <div class="brand-wrap">
-      <div class="logo">ФРД</div>
-      <div class="brand"><h1>Фотография рабочего дня</h1><p>Нажмите на дату, чтобы заполнить таблицу</p></div>
-    </div>
-    <div class="top-actions">
-      <button class="user-chip" id="userChip" title="Открыть личный кабинет">
-        <div class="avatar" id="userAvatar">?</div>
-        <div class="meta"><b id="userEmail">—</b><span id="userRole">Пользователь</span></div>
-      </button>
-      <button class="btn ghost" id="exportAllBtn">Экспорт данных</button>
-      <button class="btn ghost" id="logoutBtn">Выйти</button>
-    </div>
-  </header>
+  <div class="sticky-top-area">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="logo">ФРД</div>
+        <div class="brand"><h1>Фотография рабочего дня</h1><p>Нажмите на дату, чтобы заполнить таблицу</p></div>
+      </div>
+      <div class="top-actions">
+        <button class="user-chip" id="userChip" title="Открыть личный кабинет">
+          <div class="avatar" id="userAvatar">?</div>
+          <div class="meta"><b id="userEmail">—</b><span id="userRole">Пользователь</span></div>
+        </button>
+        <button class="btn ghost" id="exportAllBtn">Экспорт данных</button>
+        <button class="btn ghost" id="logoutBtn">Выйти</button>
+      </div>
+    </header>
 
-  <div class="admin-bar hidden" id="adminBar">
-    <label>Фильтр по сотрудникам:<select id="accountSelect"></select></label>
-    <button class="btn ghost" id="exportAllAccountsBtn" style="padding:6px 12px;font-size:13px;">Экспорт всех аккаунтов (CSV)</button>
+    <div class="admin-bar hidden" id="adminBar">
+      <label>Фильтр по сотрудникам:<select id="accountSelect"></select></label>
+      <button class="btn ghost" id="exportAllAccountsBtn" style="padding:6px 12px;font-size:13px;">Экспорт всех аккаунтов (CSV)</button>
+    </div>
   </div>
 
   <div class="calendar-card">
@@ -463,14 +470,11 @@
       <div class="insights-title"><span id="monthInsightsTitle">Заключение по сотрудникам</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
       <span class="insights-admin-badge">Только для админа</span>
     </div>
-    
-    <!-- Обертка карусели с кнопками -->
     <div class="insights-carousel-wrap" id="monthInsightsWrap">
       <button type="button" class="carousel-btn prev hidden" id="monthInsightsPrev" title="Назад">‹</button>
       <div class="insights-grid" id="monthInsightsGrid"></div>
       <button type="button" class="carousel-btn next hidden" id="monthInsightsNext" title="Вперед">›</button>
     </div>
-    
     <div class="insight-empty" id="monthInsightsEmpty" style="display:none;">За этот период ещё нет записей ни у одного пользователя.</div>
   </div>
 </div>
@@ -501,11 +505,9 @@
         </table>
       </div>
       <div class="empty-msg" id="emptyMsg" style="display:none;">Записей пока нет.</div>
-      
       <div style="margin-top: 12px; margin-bottom: 24px; display: flex; justify-content: flex-start;">
         <button class="btn primary" id="addRowBtn">+ Добавить строку</button>
       </div>
-
       <div class="day-chart-wrap">
         <div class="day-chart-head">
           <div class="day-chart-title">Диаграмма за день <small>— распределение времени</small></div>
@@ -519,7 +521,6 @@
         <div class="day-chart-empty" id="dayChartEmpty" style="display:none;">Нет данных для диаграммы.</div>
         <div class="chart-hint" id="dayChartHint" style="display:none;">💡 Нажмите на сегмент диаграммы, чтобы увидеть все задачи этой категории.</div>
       </div>
-
       <div class="insights-card hidden" id="dayInsights" style="margin-bottom:18px;">
         <div class="insights-head">
           <div class="insights-title"><span>Заключение по дню</span><small>Аналитика по записям за этот день</small></div>
@@ -597,26 +598,18 @@
         <div class="profile-field"><span>Роль</span><b id="profileRole">—</b></div>
         <div class="profile-field"><span>Дата регистрации</span><b id="profileCreated">—</b></div>
       </div>
-
       <div class="profile-section">
         <h3>Личные данные</h3>
         <form id="profileDataForm" class="profile-form" autocomplete="off">
-          <label>ФИО
-            <input type="text" id="profFio" required placeholder="Иванов Иван Иванович">
-          </label>
-          <label>Должность
-            <input type="text" id="profPosition" required placeholder="Менеджер">
-          </label>
-          <label>Отдел (РЦ)
-            <input type="text" id="profDepartment" required placeholder="Склад №1">
-          </label>
+          <label>ФИО<input type="text" id="profFio" required placeholder="Иванов Иван Иванович"></label>
+          <label>Должность<input type="text" id="profPosition" required placeholder="Менеджер"></label>
+          <label>Отдел (РЦ)<input type="text" id="profDepartment" required placeholder="Склад №1"></label>
           <div class="auth-msg" id="profileDataMsg"></div>
           <div class="profile-form-actions">
             <button type="submit" class="btn primary">Сохранить данные</button>
           </div>
         </form>
       </div>
-
       <div class="profile-section">
         <h3>Смена пароля</h3>
         <form id="changePwForm" class="profile-form" autocomplete="off">
@@ -688,7 +681,6 @@ const CATEGORY_COLORS = {
   'Легко':'#22c55e','Средне':'#f59e0b','Сложно':'#ef4444'
 };
 
-// Производственный календарь (праздничные дни)
 const HOLIDAYS = {
   2024: ['2024-01-01','2024-01-02','2024-01-03','2024-01-04','2024-01-05','2024-01-08','2024-02-23','2024-03-08','2024-04-29','2024-04-30','2024-05-01','2024-05-09','2024-05-10','2024-06-12','2024-11-04'],
   2025: ['2025-01-01','2025-01-02','2025-01-03','2025-01-06','2025-01-07','2025-01-08','2025-02-24','2025-03-10','2025-05-01','2025-05-02','2025-05-08','2025-05-09','2025-06-12','2025-06-13','2025-11-03','2025-11-04'],
@@ -764,28 +756,23 @@ function countWorkingDays(start, end) {
   current.setHours(0,0,0,0);
   let endStripped = new Date(end);
   endStripped.setHours(0,0,0,0);
-  
   while (current <= endStripped) {
     const day = current.getDay();
     const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
     const year = current.getFullYear();
-    
     const isWeekend = (day === 0 || day === 6);
     const isHoliday = (HOLIDAYS[year] || []).includes(dateStr);
-    
-    if (!isWeekend && !isHoliday) {
-      count++;
-    }
+    if (!isWeekend && !isHoliday) count++;
     current.setDate(current.getDate() + 1);
   }
   return count;
 }
 
 function getGaugeColor(pct) {
-  if (pct > 100) return '#ef4444'; // Красный (переработка)
-  if (pct >= 85) return '#10b981'; // Зеленый (оптимально)
-  if (pct >= 50) return '#2563eb'; // Синий (норма)
-  return '#f59e0b'; // Оранжевый (недогруз)
+  if (pct > 100) return '#ef4444';
+  if (pct >= 85) return '#10b981';
+  if (pct >= 50) return '#2563eb';
+  return '#f59e0b';
 }
 
 function getFirstRecordDate(email) {
@@ -819,28 +806,18 @@ function getUserAvatarText(email) {
   return name.slice(0, 2).toUpperCase();
 }
 
-function saveUsers(){ 
-  if (!db) localStorage.setItem(USERS_KEY, JSON.stringify(users)); 
-}
+function saveUsers(){ if (!db) localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
 
 function saveAllData(){ 
   if (activeEmail) {
     const key = safeKey(activeEmail);
     if (!allData[key]) allData[key] = {};
-    
     if (currentKey && currentRows) {
-      if (currentRows.length === 0) {
-        delete allData[key][currentKey];
-      } else {
-        allData[key][currentKey] = currentRows;
-      }
+      if (currentRows.length === 0) delete allData[key][currentKey];
+      else allData[key][currentKey] = currentRows;
     }
-    
-    if (db) {
-      db.ref('data/' + key).set(allData[key]);
-    } else {
-      localStorage.setItem(DATA_KEY, JSON.stringify(allData));
-    }
+    if (db) db.ref('data/' + key).set(allData[key]);
+    else localStorage.setItem(DATA_KEY, JSON.stringify(allData));
   }
 }
 
@@ -930,12 +907,8 @@ function genPassword(len = 10){
 /* =============================================================
    ПОЧТА (ЗАГЛУШКА)
    ============================================================= */
-function buildEmailText(email, password){
-  return `Логин: ${email}\nПароль: ${password}`;
-}
-async function sendEmail(to, subject, text, password){
-  return { sent:false, reason:'disabled' };
-}
+function buildEmailText(email, password){ return `Логин: ${email}\nПароль: ${password}`; }
+async function sendEmail(to, subject, text, password){ return { sent:false, reason:'disabled' }; }
 
 /* =============================================================
    РЕГИСТРАЦИЯ / ВХОД / СБРОС / СМЕНА
@@ -943,15 +916,12 @@ async function sendEmail(to, subject, text, password){
 async function registerUser(rawEmail){
   const email = String(rawEmail || '').trim().toLowerCase();
   if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
-  
   const key = safeKey(email);
-  if (users[key])    throw new Error('Пользователь с таким email уже зарегистрирован.');
-  
+  if (users[key]) throw new Error('Пользователь с таким email уже зарегистрирован.');
   const password = genPassword(10);
   const salt = genPassword(16);
   const passHash = await hashPassword(password, salt);
   const newUser = { email, salt, passHash, createdAt: Date.now(), fio: '', position: '', department: '' };
-  
   if (db) {
     await db.ref('users/' + key).set(newUser);
     users[key] = newUser; 
@@ -961,7 +931,6 @@ async function registerUser(rawEmail){
     if (!allData[key]) allData[key] = {};
     saveAllData();
   }
-  
   const result = await sendEmail(email, 'Регистрация в системе ФРД', buildEmailText(email, password), password);
   return { email, password, ...result };
 }
@@ -969,15 +938,12 @@ async function registerUser(rawEmail){
 async function loginUser(rawEmail, password){
   const email = String(rawEmail || '').trim().toLowerCase();
   if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
-  
   const key = safeKey(email);
   const u = users[key];
   if (!u) throw new Error('Пользователь с таким email не найден.');
   if (!password) throw new Error('Введите пароль.');
-  
   const h = await hashPassword(password, u.salt);
   if (h !== u.passHash) throw new Error('Неверный пароль.');
-  
   sessionEmail = email; activeEmail = email;
   localStorage.setItem(SESSION_KEY, email);
   return u;
@@ -986,21 +952,14 @@ async function loginUser(rawEmail, password){
 async function resetPassword(rawEmail){
   const email = String(rawEmail || '').trim().toLowerCase();
   if (!isEmail(email)) throw new Error('Введите корректный адрес почты.');
-  
   const key = safeKey(email);
   const u = users[key];
   if (!u) throw new Error('Пользователь с таким email не найден.');
-  
   const password = genPassword(10);
   u.salt = genPassword(16);
   u.passHash = await hashPassword(password, u.salt);
-  
-  if (db) {
-    await db.ref('users/' + key).update({ salt: u.salt, passHash: u.passHash });
-  } else {
-    saveUsers();
-  }
-  
+  if (db) await db.ref('users/' + key).update({ salt: u.salt, passHash: u.passHash });
+  else saveUsers();
   const result = await sendEmail(email, 'Восстановление пароля ФРД', buildEmailText(email, password), password);
   return { email, password, ...result };
 }
@@ -1010,23 +969,16 @@ async function changePassword(email, currentPassword, newPassword){
   const u = users[key];
   if (!u) throw new Error('Пользователь не найден.');
   if (!currentPassword) throw new Error('Введите текущий пароль.');
-  if (!newPassword)     throw new Error('Введите новый пароль.');
+  if (!newPassword) throw new Error('Введите новый пароль.');
   if (newPassword.length < 6) throw new Error('Минимум 6 символов.');
-  
   const curHash = await hashPassword(currentPassword, u.salt);
   if (curHash !== u.passHash) throw new Error('Текущий пароль неверен.');
-  
   const sameCheck = await hashPassword(newPassword, u.salt);
   if (sameCheck === u.passHash) throw new Error('Новый пароль должен отличаться.');
-  
   u.salt = genPassword(16);
   u.passHash = await hashPassword(newPassword, u.salt);
-  
-  if (db) {
-    await db.ref('users/' + key).update({ salt: u.salt, passHash: u.passHash });
-  } else {
-    saveUsers();
-  }
+  if (db) await db.ref('users/' + key).update({ salt: u.salt, passHash: u.passHash });
+  else saveUsers();
 }
 
 /* =============================================================
@@ -1076,19 +1028,15 @@ function showAuthScreen(){
 function showAppScreen(){
   authScreen.classList.add('hidden');
   appScreen.classList.remove('hidden');
-  
   document.getElementById('userEmail').textContent = getUserDisplayName(sessionEmail);
   document.getElementById('userAvatar').textContent = getUserAvatarText(sessionEmail);
   document.getElementById('userRole').textContent = sessionEmail === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
-  
   const todayStr = new Date().toISOString().slice(0,10);
   document.getElementById('statsDate').value = todayStr;
-  
   refreshAdminBar();
   renderCalendar();
   renderMonthChart();
   renderMonthInsights();
-  
   const key = safeKey(sessionEmail);
   const u = users[key];
   if (!u || !u.fio || !u.position || !u.department) {
@@ -1100,14 +1048,9 @@ function showAppScreen(){
 function refreshAdminBar(){
   const bar = document.getElementById('adminBar');
   const sel = document.getElementById('accountSelect');
-  if (sessionEmail !== ADMIN_EMAIL){ 
-    bar.classList.add('hidden'); 
-    return; 
-  }
+  if (sessionEmail !== ADMIN_EMAIL){ bar.classList.add('hidden'); return; }
   bar.classList.remove('hidden');
-  
   const keys = Object.keys(users).sort((a,b) => users[a].email.localeCompare(users[b].email));
-  
   let html = `<option value="all"${employeeFilter === 'all' ? ' selected' : ''}>Все сотрудники</option>`;
   keys.forEach(k => {
     const email = users[k].email;
@@ -1164,7 +1107,6 @@ function openDay(key){
   currentKey = key; 
   currentRows = getRows(store, key);
   store[key] = currentRows;
-  
   const [y, m, d] = key.split('-').map(Number);
   const dt = new Date(y, m - 1, d);
   modalTitle.textContent = `${d} ${MONTHS_GEN[m-1]} ${y}`;
@@ -1217,38 +1159,28 @@ function handleEdit(e){
   if (!el.dataset || !el.dataset.field) return;
   const tr = el.closest('tr'); if (!tr) return;
   const i = Number(tr.dataset.index); if (!currentRows[i]) return;
-  
   const field = el.dataset.field;
   currentRows[i][field] = el.value;
-
   if (field === 'start' || field === 'end'){
     const startInput = tr.querySelector('[data-field="start"]');
     const endInput = tr.querySelector('[data-field="end"]');
     const spentInput = tr.querySelector('[data-field="spent"]');
-    
     currentRows[i].start = startInput.value;
     currentRows[i].end = endInput.value;
     const mins = calcDuration(startInput.value, endInput.value);
-    
     spentInput.value = formatDuration(mins);
     currentRows[i].duration = mins;
-    
     updateTotals();
     renderDayChart();
     renderDayInsights();
   }
-  
   if (['interest','complexity','workType'].includes(field)){
     renderDayChart(); 
     renderDayInsights();
   }
 }
 tbody.addEventListener('input',  handleEdit);
-tbody.addEventListener('change', (e) => {
-  handleEdit(e);
-  saveAllData();
-});
-
+tbody.addEventListener('change', (e) => { handleEdit(e); saveAllData(); });
 tbody.addEventListener('click', e => {
   const btn = e.target.closest('button.del'); if (!btn) return;
   const i = Number(btn.dataset.del);
@@ -1350,7 +1282,6 @@ function collectStatsRecords(){
   const period = document.getElementById('statsPeriod').value;
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
   let fromKey, toKey;
-
   if (period === 'month') {
     fromKey = keyOf(y, m, 1);
     toKey = keyOf(y, m, new Date(y, m + 1, 0).getDate());
@@ -1359,15 +1290,10 @@ function collectStatsRecords(){
     toKey = keyOf(y, 11, 31);
   } else {
     const val = document.getElementById('statsDate').value;
-    if (val) {
-       const [dy, dm, dd] = val.split('-').map(Number);
-       fromKey = keyOf(dy, dm-1, dd);
-    } else {
-       fromKey = keyOf(y, m, 1);
-    }
+    if (val) { const [dy, dm, dd] = val.split('-').map(Number); fromKey = keyOf(dy, dm-1, dd); }
+    else { fromKey = keyOf(y, m, 1); }
     toKey = fromKey;
   }
-
   const isAdmin = sessionEmail === ADMIN_EMAIL;
   const sources = [];
   if (isAdmin){ 
@@ -1386,7 +1312,6 @@ function collectStatsRecords(){
     const key = safeKey(activeEmail);
     sources.push({ email: activeEmail, bucket: allData[key] || {} }); 
   }
-
   const records = [];
   sources.forEach(({ email, bucket }) => {
     Object.keys(bucket).forEach(k => {
@@ -1405,7 +1330,6 @@ function aggregateMonthData(mode){
   records.forEach(({ row }) => { if (rowMinutes(row) <= 0) return; presentLabels.add(categoryOf(row, mode)); });
   const labels = orderedLabels(mode, presentLabels);
   if (!labels.length) return { labels: [], datasets: [], isAdmin, showStacked, mode };
-  
   if (showStacked){
     const usersSet = new Set(); const matrix = new Map();
     records.forEach(({ email, row }) => {
@@ -1436,10 +1360,8 @@ function getChartScopeLabel(){
   else if (period === 'year') scopeLabel = viewDate.getFullYear() + ' год';
   else {
     const v = document.getElementById('statsDate').value;
-    if (v){
-      const [dy, dm, dd] = v.split('-').map(Number);
-      scopeLabel = dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy;
-    } else scopeLabel = 'день';
+    if (v){ const [dy, dm, dd] = v.split('-').map(Number); scopeLabel = dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy; }
+    else scopeLabel = 'день';
   }
   if (employeeFilter !== 'all') scopeLabel += ' · ' + getUserDisplayName(employeeFilter);
   return scopeLabel;
@@ -1449,40 +1371,25 @@ function renderMonthChart(){
   const period = document.getElementById('statsPeriod').value;
   const data = aggregateMonthData(monthChartMode);
   const isEmpty = !data.labels.length || !data.datasets.length || data.datasets.every(ds => ds.data.every(v => !v));
-  
   document.getElementById('monthChartEmpty').style.display = isEmpty ? 'flex' : 'none';
   document.getElementById('monthChartWrap').style.display = isEmpty ? 'none' : 'block';
   const hintEl = document.getElementById('monthChartHint');
   if (hintEl) hintEl.style.display = isEmpty ? 'none' : 'block';
-  
   const m = viewDate.getMonth(), y = viewDate.getFullYear();
   const isAdmin = sessionEmail === ADMIN_EMAIL;
-  
   const titleEl = document.getElementById('monthChartTitle');
-  if (period === 'month') {
-    titleEl.textContent = 'Статистика за ' + MONTHS[m].toLowerCase() + ' ' + y;
-  } else if (period === 'year') {
-    titleEl.textContent = 'Статистика за ' + y + ' год';
-  } else {
+  if (period === 'month') titleEl.textContent = 'Статистика за ' + MONTHS[m].toLowerCase() + ' ' + y;
+  else if (period === 'year') titleEl.textContent = 'Статистика за ' + y + ' год';
+  else {
     const val = document.getElementById('statsDate').value;
-    if (val) {
-      const [dy, dm, dd] = val.split('-').map(Number);
-      titleEl.textContent = 'Статистика за ' + dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy;
-    } else {
-      titleEl.textContent = 'Статистика за день';
-    }
+    if (val) { const [dy, dm, dd] = val.split('-').map(Number); titleEl.textContent = 'Статистика за ' + dd + ' ' + MONTHS_GEN[dm-1] + ' ' + dy; }
+    else titleEl.textContent = 'Статистика за день';
   }
-  
   let subText;
-  if (isAdmin && employeeFilter !== 'all'){
-    subText = 'Фильтр: ' + getUserDisplayName(employeeFilter);
-  } else if (isAdmin){
-    subText = 'Администратор — данные всех аккаунтов';
-  } else {
-    subText = 'Только ваши данные';
-  }
+  if (isAdmin && employeeFilter !== 'all') subText = 'Фильтр: ' + getUserDisplayName(employeeFilter);
+  else if (isAdmin) subText = 'Администратор — данные всех аккаунтов';
+  else subText = 'Только ваши данные';
   document.getElementById('monthChartSub').textContent = subText;
-  
   const summaryEl = document.getElementById('monthSummary');
   if (!isEmpty){
     let totalMin = 0; data.datasets.forEach(ds => ds.data.forEach(v => { totalMin += (v || 0) * 60; }));
@@ -1493,10 +1400,8 @@ function renderMonthChart(){
     }
     summaryEl.innerHTML = lines.join(' &nbsp;·&nbsp; ');
   } else summaryEl.innerHTML = '';
-  
   if (monthChart) monthChart.destroy();
   if (isEmpty) return;
-  
   const canvas = document.getElementById('monthChart');
   const type = data.showStacked ? 'bar' : 'doughnut';
   const options = { responsive: true, maintainAspectRatio: false,
@@ -1514,26 +1419,8 @@ function renderMonthChart(){
     } };
   if (data.showStacked){ 
     options.scales = { 
-      x: { 
-        stacked: true, 
-        grid: { display: false }, 
-        ticks: { 
-          font: { size: 10 }, 
-          autoSkip: false, 
-          maxRotation: 0, 
-          minRotation: 0, 
-          align: 'center',
-          callback: function(value) {
-            const label = this.getLabelForValue(value);
-            return label.split(' '); // Переносим по словам
-          }
-        } 
-      }, 
-      y: { 
-        stacked: true, 
-        beginAtZero: true, 
-        ticks: { font: { size: 10 } } 
-      } 
+      x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false, maxRotation: 0, minRotation: 0, align: 'center', callback: function(value) { return this.getLabelForValue(value).split(' '); } } }, 
+      y: { stacked: true, beginAtZero: true, ticks: { font: { size: 10 } } } 
     }; 
   }
   else options.cutout = '55%';
@@ -1568,27 +1455,21 @@ function analyzeRecords(records){
     tasksByComplexity: new Map(),
     topTasks: new Map()
   };
-  
   records.forEach(({ date, row }) => {
     const mins = rowMinutes(row); if (mins <= 0) return;
     result.totalMin += mins; result.totalRows++; result.daysCount.add(date);
-    
     const type = row.workType || 'Не указано';
     const tKey = (row.task || '').trim() || '(без названия)';
-    
     result.byType.set(type, (result.byType.get(type) || 0) + mins);
     result.topTasks.set(tKey, (result.topTasks.get(tKey) || 0) + mins);
-    
     if (!result.tasksByWorkType.has(type)) result.tasksByWorkType.set(type, new Map());
     const mapW = result.tasksByWorkType.get(type);
     mapW.set(tKey, (mapW.get(tKey) || 0) + mins);
-
     if (row.interest){
       result.byInterest.set(row.interest, (result.byInterest.get(row.interest) || 0) + mins);
       if (!result.interestByType.has(type)) result.interestByType.set(type, { minutes: 0, weighted: 0 });
       const ib = result.interestByType.get(type);
       ib.minutes += mins; ib.weighted += mins * INTEREST.indexOf(row.interest);
-      
       if (!result.tasksByInterest.has(row.interest)) result.tasksByInterest.set(row.interest, new Map());
       const mapI = result.tasksByInterest.get(row.interest);
       mapI.set(tKey, (mapI.get(tKey) || 0) + mins);
@@ -1598,16 +1479,13 @@ function analyzeRecords(records){
       if (!result.complexityByType.has(type)) result.complexityByType.set(type, { minutes: 0, weighted: 0 });
       const cb = result.complexityByType.get(type);
       cb.minutes += mins; cb.weighted += mins * COMPLEXITY.indexOf(row.complexity);
-      
       if (!result.tasksByComplexity.has(row.complexity)) result.tasksByComplexity.set(row.complexity, new Map());
       const mapC = result.tasksByComplexity.get(row.complexity);
       mapC.set(tKey, (mapC.get(tKey) || 0) + mins);
     }
-    
     if (row.interest === 'Интересно' && mins >= 30) result.bestTasks.push({ task: tKey, minutes: mins });
     if (row.interest === 'Не интересно' && mins >= 30) result.worstTasks.push({ task: tKey, minutes: mins });
   });
-  
   result.bestTasks.sort((a,b) => b.minutes - a.minutes);
   result.worstTasks.sort((a,b) => b.minutes - a.minutes);
   return result;
@@ -1616,7 +1494,6 @@ function analyzeRecords(records){
 function buildConclusion(a){
   if (a.totalMin <= 0) return { empty: true, text: 'Нет занесённых данных.' };
   const total = a.totalMin;
-  
   const topTypes = [...a.byType.entries()]
     .sort((x,y) => y[1] - x[1])
     .slice(0, 3)
@@ -1624,17 +1501,14 @@ function buildConclusion(a){
       name, mins, share: pct(mins, total),
       topTasks: getTop3Tasks(a.tasksByWorkType.get(name) || new Map())
     }));
-    
   const interestOrdered = INTEREST.map(l => ({ 
     label: l, mins: a.byInterest.get(l) || 0,
     topTasks: getTop3Tasks(a.tasksByInterest.get(l) || new Map())
   }));
-  
   const complexOrdered = COMPLEXITY.map(l => ({ 
     label: l, mins: a.byComplexity.get(l) || 0,
     topTasks: getTop3Tasks(a.tasksByComplexity.get(l) || new Map())
   }));
-
   const dominantInterest = interestOrdered.reduce((a,b) => b.mins > a.mins ? b : a, interestOrdered[0]);
   const dominantComplex  = complexOrdered.reduce((a,b) => b.mins > a.mins ? b : a, complexOrdered[0]);
   const interestIndex = (() => { const t = interestOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return interestOrdered.reduce((s, x) => s + x.mins * INTEREST.indexOf(x.label), 0) / t; })();
@@ -1646,7 +1520,6 @@ function buildConclusion(a){
   const easiestType    = rankedByComplex[0];
   const hardestType    = rankedByComplex[rankedByComplex.length - 1];
   const personality = guessPersonality({ interestIndex, complexityIndex, dominantInterest: dominantInterest.label, dominantComplex: dominantComplex.label, topType: topTypes[0] ? topTypes[0].name : null, byType: a.byType, total });
-
   return { 
     empty: false, totalMin: total, totalRows: a.totalRows, daysCount: a.daysCount.size, 
     topTypes, interestOrdered, complexOrdered, dominantInterest, dominantComplex, 
@@ -1655,13 +1528,10 @@ function buildConclusion(a){
   };
 }
 
-// СИНХРОНИЗИРОВАННАЯ ЛОГИКА ЛИЧНОСТИ И РОЛЕЙ С ПОГРЕШНОСТЬЮ +-4%
 // Условие «Универсал»: минимум 3 роли ≥15%, и разница между 1-м и 3-м местом ≤ 4%
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
-  
   const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
-  
   let scoresArr = [
     { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), text: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
     { name: 'Наставник / Тренер', share: shareOf(['Обучение', 'Обучение персонала']), text: 'Много времени уделяет обучению коллег и передаче знаний.' },
@@ -1670,17 +1540,12 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
     { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), text: 'Связующее звено команды, решает вопросы через общение.' },
     { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), text: 'Держит в порядке процессы, документы и рутину.' }
   ];
-  
   scoresArr.sort((a, b) => b.share - a.share);
-  
   let topRole = 'Универсал';
   let text = 'Способен закрывать разные участки работы.';
-  
   const top = scoresArr[0];
   const eligibleCount = scoresArr.filter(s => s.share >= 0.15).length;
-  
   if (top.share >= 0.15) {
-      // Проверяем разницу между 1-м и 3-м местом ≤ 4% — это гарантирует, что три лидирующие роли близки друг к другу
       if (eligibleCount >= 3 && (scoresArr[0].share - scoresArr[2].share) <= 0.04) {
           topRole = 'Универсал';
           text = 'Способен закрывать разные участки работы.';
@@ -1689,7 +1554,6 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
           text = top.text;
       }
   }
-  
   return { title: topRole, text };
 }
 
@@ -1699,46 +1563,38 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
 function renderInsightCard(email, conclusion, dayPct){
   const avatar = getUserAvatarText(email);
   const displayName = getUserDisplayName(email);
-  
   if (conclusion.empty){
     return `<div class="insight-card" data-user="${esc(email)}"><div class="insight-user"><div class="insight-avatar">${esc(avatar)}</div><div><b>${esc(displayName)}</b><small>Нет данных</small></div></div><div class="insight-row"><div class="v" style="color:var(--muted);">${esc(conclusion.text)}</div></div></div>`;
   }
-
   const gColor = getGaugeColor(dayPct);
   const cappedPct = Math.min(100, dayPct);
   const gOffset = 125.6 - (125.6 * cappedPct / 100);
-
   const topTypesHtml = conclusion.topTypes.map(t => `
     <div style="margin-bottom: 6px;">
       <span class="insight-tag">${esc(t.name)} · ${t.share}%</span>
       ${t.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${t.topTasks}</div>` : ''}
     </div>
   `).join('') || '—';
-
   const interestHtml = conclusion.interestOrdered.filter(x => x.mins > 0).map(x => `
     <div style="margin-bottom: 6px;">
       <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
       ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${x.topTasks}</div>` : ''}
     </div>
   `).join('') || 'нет данных';
-
   const complexHtml = conclusion.complexOrdered.filter(x => x.mins > 0).map(x => `
     <div style="margin-bottom: 6px;">
       <b>${esc(x.label)}</b> — ${fmtHours(x.mins)}
       ${x.topTasks ? `<div class="text-sm" style="color:#475569; margin-top:4px; line-height: 1.4;">${x.topTasks}</div>` : ''}
     </div>
   `).join('') || 'нет данных';
-
   const liked = conclusion.mostLikedType ? `<span class="insight-tag ok">${esc(conclusion.mostLikedType.type)}</span>` : '—';
   const disliked = conclusion.leastLikedType && conclusion.leastLikedType.type !== (conclusion.mostLikedType && conclusion.mostLikedType.type) ? `<span class="insight-tag cool">${esc(conclusion.leastLikedType.type)}</span>` : '—';
   const easiest = conclusion.easiestType ? `<span class="insight-tag ok">${esc(conclusion.easiestType.type)}</span>` : '—';
   const hardest = conclusion.hardestType && conclusion.hardestType.type !== (conclusion.easiestType && conclusion.easiestType.type) ? `<span class="insight-tag cool">${esc(conclusion.hardestType.type)}</span>` : '—';
-  
   return `<div class="insight-card" data-user="${esc(email)}">
     <div class="insight-user">
       <div class="insight-avatar">${esc(avatar)}</div>
       <div style="padding-right: 50px;"><b>${esc(displayName)}</b><small>${conclusion.totalRows} записей · ${conclusion.daysCount} дн. · ${fmtHours(conclusion.totalMin)}</small></div>
-      
       <div class="card-gauge-wrap" title="Ср. загруж-ть в день: ${dayPct}%">
         <div class="card-gauge-body">
             <svg class="gauge-svg" viewBox="0 0 100 55">
@@ -1748,7 +1604,6 @@ function renderInsightCard(email, conclusion, dayPct){
             <div class="card-gauge-val">${dayPct}%</div>
         </div>
       </div>
-
     </div>
     <div class="insight-list">
       <div class="insight-row"><div class="k">Больше всего занимается</div><div class="v">${topTypesHtml}</div></div>
@@ -1769,11 +1624,9 @@ function renderMonthInsights(){
   const empty = document.getElementById('monthInsightsEmpty');
   if (sessionEmail !== ADMIN_EMAIL){ card.classList.add('hidden'); return; }
   card.classList.remove('hidden');
-  
   const { first, last } = monthRangeKeys();
   const keys = Object.keys(allData).sort();
   const items = [];
-  
   keys.forEach(key => {
     const u = users[key];
     const email = u ? u.email : key; 
@@ -1782,7 +1635,6 @@ function renderMonthInsights(){
     if (!records.length) return;
     const conclusion = buildConclusion(analyzeRecords(records));
     if (conclusion.empty) return;
-
     const today = new Date();
     today.setHours(0,0,0,0);
     const firstDate = getFirstRecordDate(email);
@@ -1797,25 +1649,18 @@ function renderMonthInsights(){
         }
     });
     const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
-
     items.push({ email, conclusion, dayPct });
   });
-
-  // Сортируем по проценту загруженности (по убыванию)
   items.sort((a, b) => b.dayPct - a.dayPct);
-
   const cardsHtml = items.map(item => renderInsightCard(item.email, item.conclusion, item.dayPct)).join('');
-  
   monthInsightsGrid.innerHTML = cardsHtml;
   empty.style.display = items.length ? 'none' : 'block';
-  
   const titleEl = document.getElementById('monthInsightsTitle');
   if (titleEl){
     titleEl.textContent = employeeFilter !== 'all'
       ? 'Заключение: ' + getUserDisplayName(employeeFilter)
       : 'Заключение по сотрудникам';
   }
-  
   updateCarouselButtons();
 }
 
@@ -1826,7 +1671,6 @@ function renderDayInsights(){
   if (!currentKey || !activeEmail){ dayInsightsGrid.innerHTML = ''; return; }
   const key = safeKey(activeEmail);
   const records = getRows(allData[key] || {}, currentKey).map(row => ({ date: currentKey, row }));
-  
   const today = new Date();
   today.setHours(0,0,0,0);
   const firstDate = getFirstRecordDate(activeEmail);
@@ -1840,30 +1684,25 @@ function renderDayInsights(){
       }
   });
   const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
-
   dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)), dayPct);
 }
 
 /* =============================================================
-   ЛОГИКА КАРУСЕЛИ (СТРЕЛОЧКИ)
+   ЛОГИКА КАРУСЕЛИ
    ============================================================= */
 function updateCarouselButtons() {
   const wrap = document.getElementById('monthInsightsWrap');
   const grid = document.getElementById('monthInsightsGrid');
   const prevBtn = document.getElementById('monthInsightsPrev');
   const nextBtn = document.getElementById('monthInsightsNext');
-  
   if (!wrap || !grid || !prevBtn || !nextBtn) return;
-
   if (grid.scrollWidth <= grid.clientWidth + 5) {
     prevBtn.classList.add('hidden');
     nextBtn.classList.add('hidden');
     return;
   }
-  
   const isAtStart = grid.scrollLeft <= 5;
   const isAtEnd = grid.scrollLeft >= (grid.scrollWidth - grid.clientWidth - 5);
-
   prevBtn.classList.toggle('hidden', isAtStart);
   nextBtn.classList.toggle('hidden', isAtEnd);
 }
@@ -1876,10 +1715,214 @@ document.getElementById('monthInsightsNext').addEventListener('click', () => {
   const grid = document.getElementById('monthInsightsGrid');
   grid.scrollBy({ left: grid.clientWidth, behavior: 'smooth' });
 });
-
 document.getElementById('monthInsightsGrid').addEventListener('scroll', updateCarouselButtons);
 window.addEventListener('resize', updateCarouselButtons);
 
+
+/* =============================================================
+   ★★★ ТАЙМ-МЕНЕДЖМЕНТ ★★★
+   ============================================================= */
+function analyzeTimeManagement(deep){
+  const records = (deep.records || []).filter(r => rowMinutes(r.row) > 0);
+  if (!records.length) return null;
+
+  const stats = {
+    totalTasks: 0, tasksWithTimes: 0, totalMins: 0,
+    shortTasks: 0,    // < 15 мин
+    mediumTasks: 0,   // 15-60 мин
+    longTasks: 0,     // 60-120 мин
+    veryLongTasks: 0, // > 120 мин
+    daysWithOverlaps: 0,
+    daysWithGaps: 0,
+    morningMins: 0,   // до 12:00
+    afternoonMins: 0, // 12:00–17:00
+    eveningMins: 0,   // после 17:00
+    totalDays: 0,
+    tasksPerDay: [],
+    dayDurations: []
+  };
+
+  const byDate = new Map();
+  records.forEach(({ date, row }) => {
+    const mins = rowMinutes(row);
+    if (!byDate.has(date)) byDate.set(date, []);
+    byDate.get(date).push({ row, mins, start: row.start || '', end: row.end || '' });
+  });
+  stats.totalDays = byDate.size;
+
+  byDate.forEach((tasks, date) => {
+    let dayMins = 0;
+    let gaps = 0;
+    let overlap = false;
+    const withTimes = tasks.filter(t => t.start && t.end)
+      .map(t => {
+        const sm = parseInt(t.start.split(':')[0])*60 + parseInt(t.start.split(':')[1]);
+        let em = parseInt(t.end.split(':')[0])*60 + parseInt(t.end.split(':')[1]);
+        if (em < sm) em += 24*60;
+        return { ...t, sm, em };
+      })
+      .sort((a,b) => a.sm - b.sm);
+    let prevEnd = null;
+    withTimes.forEach(t => {
+      dayMins += t.mins;
+      if (prevEnd !== null) {
+        if (t.sm < prevEnd) overlap = true;
+        else if (t.sm - prevEnd > 30) gaps++;
+      }
+      if (prevEnd === null || t.em > prevEnd) prevEnd = t.em;
+    });
+    if (withTimes.length === 0) tasks.forEach(t => dayMins += t.mins);
+    stats.tasksPerDay.push(tasks.length);
+    stats.dayDurations.push(dayMins);
+    if (overlap) stats.daysWithOverlaps++;
+    if (gaps > 0) stats.daysWithGaps++;
+  });
+
+  records.forEach(({ row }) => {
+    const mins = rowMinutes(row);
+    stats.totalTasks++;
+    stats.totalMins += mins;
+    if (row.start && row.end) stats.tasksWithTimes++;
+    if (mins < 15) stats.shortTasks++;
+    else if (mins <= 60) stats.mediumTasks++;
+    else if (mins <= 120) stats.longTasks++;
+    else stats.veryLongTasks++;
+    if (row.start) {
+      const h = parseInt(row.start.split(':')[0], 10);
+      if (h < 12) stats.morningMins += mins;
+      else if (h < 17) stats.afternoonMins += mins;
+      else stats.eveningMins += mins;
+    }
+  });
+
+  const avgTaskMins = stats.totalMins / Math.max(1, stats.totalTasks);
+  const avgTasksPerDay = stats.tasksPerDay.reduce((a,b) => a+b, 0) / Math.max(1, stats.tasksPerDay.length);
+  const avgDayMins = stats.dayDurations.reduce((a,b) => a+b, 0) / Math.max(1, stats.dayDurations.length);
+  const fragmentationPct = stats.totalTasks ? (stats.shortTasks / stats.totalTasks) * 100 : 0;
+  const longPct = stats.totalTasks ? ((stats.longTasks + stats.veryLongTasks) / stats.totalTasks) * 100 : 0;
+  const timeFillPct = stats.totalTasks ? (stats.tasksWithTimes / stats.totalTasks) * 100 : 0;
+
+  let score = 50;
+  if (timeFillPct >= 90) score += 15;
+  else if (timeFillPct >= 70) score += 8;
+  else if (timeFillPct < 50) score -= 15;
+
+  if (fragmentationPct > 50) score -= 15;
+  else if (fragmentationPct > 30) score -= 5;
+  else if (fragmentationPct < 15) score += 10;
+
+  if (avgDayMins >= 360 && avgDayMins <= 540) score += 10;
+  else if (avgDayMins < 240) score -= 10;
+  else if (avgDayMins > 600) score -= 10;
+
+  if (stats.daysWithOverlaps === 0) score += 10;
+  else if (stats.daysWithOverlaps > stats.totalDays * 0.3) score -= 10;
+  else score -= 3;
+
+  if (stats.daysWithGaps === 0) score += 5;
+  else if (stats.daysWithGaps > stats.totalDays * 0.5) score -= 5;
+
+  if (avgTasksPerDay >= 5 && avgTasksPerDay <= 12) score += 5;
+  else if (avgTasksPerDay < 3) score -= 5;
+  else if (avgTasksPerDay > 18) score -= 8;
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  return {
+    stats, avgTaskMins, avgTasksPerDay, avgDayMins,
+    fragmentationPct, longPct, timeFillPct, score
+  };
+}
+
+function buildTimeManagementHtml(tm){
+  if (!tm) return '';
+  const { stats, avgTaskMins, avgTasksPerDay, avgDayMins, fragmentationPct, longPct, timeFillPct, score } = tm;
+
+  const scoreColor  = score >= 80 ? '#16a34a' : score >= 60 ? '#f59e0b' : '#ef4444';
+  const scoreLabel  = score >= 80 ? 'Отличный тайм-менеджмент' : score >= 60 ? 'Средний уровень — есть что улучшить' : 'Есть системные проблемы с планированием';
+  const scoreBg     = score >= 80 ? '#f0fdf4' : score >= 60 ? '#fffbeb' : '#fef2f2';
+  const scoreBorder = score >= 80 ? '#bbf7d0' : score >= 60 ? '#fde68a' : '#fecaca';
+
+  const improvements = [];
+  if (timeFillPct < 90) improvements.push(`Заполняйте начало и конец каждой задачи (сейчас ${Math.round(timeFillPct)}%). Без этого невозможно объективно оценить загрузку.`);
+  if (fragmentationPct > 40) improvements.push(`Много коротких задач (<15 мин) — ${Math.round(fragmentationPct)}%. Объединяйте мелкие дела в блоки (batching): почта 2–3 раза в день вместо постоянных переключений.`);
+  else if (fragmentationPct > 25) improvements.push(`Заметная доля коротких задач (${Math.round(fragmentationPct)}%). Пробуйте группировать однотипные мелкие задачи в блоки.`);
+  if (longPct > 60) improvements.push(`Слишком много длинных задач (${Math.round(longPct)}%). Убедитесь, что это осознанная глубокая работа, а не «залипание» на одной задаче.`);
+  if (stats.daysWithOverlaps > 0) improvements.push(`Найдены пересечения по времени в ${stats.daysWithOverlaps} дн. Проверьте, нет ли параллельных задач — иначе данные не отражают реальность.`);
+  if (stats.daysWithGaps > 0) improvements.push(`Есть «дыры» >30 мин между задачами в ${stats.daysWithGaps} дн. Фиксируйте перерывы и незапланированные активности — это часть рабочего времени.`);
+  if (avgDayMins < 300) improvements.push(`Средняя фиксируемая загрузка ${Math.round(avgDayMins)} мин/день — ниже нормы. Отмечайте все задачи, а не только крупные.`);
+  if (avgDayMins > 600) improvements.push(`Средняя загрузка ${Math.round(avgDayMins)} мин/день (>10 ч). Проверьте, не перерабатываете ли вы. Переработки снижают качество планирования.`);
+  if (avgTasksPerDay > 15) improvements.push(`Слишком много задач в день — ${Math.round(avgTasksPerDay)}. Попробуйте приоритизировать: важное — в первой половине дня.`);
+  if (avgTasksPerDay < 3) improvements.push(`Мало фиксируемых задач в день — ${avgTasksPerDay.toFixed(1)}. Возможно, часть работы не записывается — это искажает картину.`);
+  if (improvements.length === 0) improvements.push('Планирование дня выглядит сбалансированным. Продолжайте фиксировать время — это ценный инструмент для самоанализа.');
+
+  const mgrRecs = [];
+  if (score < 60) mgrRecs.push('Провести беседу 1-на-1 по принципам работы с ФРД: важно фиксировать все задачи, а не только крупные.');
+  if (timeFillPct < 70) mgrRecs.push('Данные неполные (заполнено время у ' + Math.round(timeFillPct) + '% задач). Сложно объективно оценить реальную загрузку — попросить заполнять точнее.');
+  if (fragmentationPct > 40) mgrRecs.push('Высокая фрагментация — возможна перегрузка мелкими задачами. Обсудить делегирование и «часы тишины» (без отвлечений).');
+  if (longPct > 60) mgrRecs.push('Много длинных задач — уточнить, нет ли «залипания» на одной задаче в ущерб остальным приоритетам.');
+  if (stats.daysWithOverlaps > 0) mgrRecs.push('Пересечения по времени — уточнить, есть ли параллельные задачи (совещания + работа) или это ошибки в данных.');
+  if (avgDayMins < 300) mgrRecs.push('Низкая фиксируемая загрузка — проверить реальную загруженность сотрудника. Возможно, часть работы не отражается в системе.');
+  if (avgDayMins > 600) mgrRecs.push('Признаки переработки — обсудить перераспределение задач и риск выгорания.');
+  if (avgTasksPerDay > 15) mgrRecs.push('Слишком много задач в день — пересмотреть приоритеты и возможность делегирования части рутины.');
+  if (stats.eveningMins / Math.max(1, stats.totalMins) > 0.25) mgrRecs.push('Значительная часть задач выполняется после 17:00 — обратить внимание на переработки.');
+  if (mgrRecs.length === 0) mgrRecs.push('Показатели в норме. Сотрудник грамотно ведёт ФРД — можно использовать как пример для команды.');
+
+  const todTotal = stats.morningMins + stats.afternoonMins + stats.eveningMins;
+  const morningPct   = todTotal ? Math.round(stats.morningMins   / todTotal * 100) : 0;
+  const afternoonPct = todTotal ? Math.round(stats.afternoonMins / todTotal * 100) : 0;
+  const eveningPct   = todTotal ? Math.round(stats.eveningMins   / todTotal * 100) : 0;
+
+  return `
+    <div class="deep-section">
+      <h4>Тайм-менеджмент и планирование дня</h4>
+
+      <div style="background:${scoreBg}; border:1px solid ${scoreBorder}; border-radius:12px; padding:14px 16px; margin-bottom:14px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div style="text-align:center; min-width:80px;">
+          <div style="font-size:34px; font-weight:800; color:${scoreColor}; line-height:1;">${score}</div>
+          <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:2px;">из 100</div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div style="font-size:14px; font-weight:700; color:${scoreColor}; margin-bottom:4px;">${esc(scoreLabel)}</div>
+          <div style="font-size:12px; color:#475569; line-height:1.5;">Интегральная оценка качества планирования на основе полноты данных, фрагментации задач, средней загрузки, пересечений и «дыр» в расписании.</div>
+        </div>
+      </div>
+
+      <div class="deep-kpis" style="margin-bottom:14px;">
+        <div class="deep-kpi"><div class="val">${Math.round(avgTaskMins)} мин</div><div class="lbl">Ср. длит. задачи</div></div>
+        <div class="deep-kpi"><div class="val">${avgTasksPerDay.toFixed(1)}</div><div class="lbl">Задач в день</div></div>
+        <div class="deep-kpi"><div class="val">${fmtHours(avgDayMins)}</div><div class="lbl">Ср. в день</div></div>
+        <div class="deep-kpi" title="Доля задач с заполненным временем начала и конца"><div class="val">${Math.round(timeFillPct)}%</div><div class="lbl">Заполнено с временем</div></div>
+        <div class="deep-kpi" title="Доля задач короче 15 минут"><div class="val">${Math.round(fragmentationPct)}%</div><div class="lbl">Коротких задач</div></div>
+      </div>
+
+      <div class="psych-grid-2" style="margin-bottom:12px;">
+        <div class="psych-block" style="background:#f0fdf4; border-color:#bbf7d0;">
+          <div class="psych-title" style="color:#166534;">📈 Что улучшить сотруднику</div>
+          <ul class="psych-ul">${improvements.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+        </div>
+        <div class="psych-block" style="background:#eff6ff; border-color:#bfdbfe;">
+          <div class="psych-title" style="color:#1e40af;">👔 На что обратить внимание руководителю</div>
+          <ul class="psych-ul">${mgrRecs.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+        </div>
+      </div>
+
+      <div class="psych-block" style="background:#fff;">
+        <div class="psych-title">Распределение работы в течение дня</div>
+        <div style="display:flex; gap:2px; height:22px; border-radius:6px; overflow:hidden; margin-top:6px; background:#f1f5f9;">
+          <div style="width:${morningPct}%; background:#22c55e;" title="Утро: ${morningPct}%"></div>
+          <div style="width:${afternoonPct}%; background:#3b82f6;" title="День: ${afternoonPct}%"></div>
+          <div style="width:${eveningPct}%; background:#f59e0b;" title="Вечер: ${eveningPct}%"></div>
+        </div>
+        <div style="display:flex; gap:14px; margin-top:6px; font-size:11.5px; color:#475569; flex-wrap:wrap;">
+          <span><span style="display:inline-block;width:10px;height:10px;background:#22c55e;border-radius:2px;vertical-align:-1px;"></span> Утро (до 12:00): <b>${morningPct}%</b></span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px;vertical-align:-1px;"></span> День (12:00–17:00): <b>${afternoonPct}%</b></span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:#f59e0b;border-radius:2px;vertical-align:-1px;"></span> Вечер (после 17:00): <b>${eveningPct}%</b></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 /* =============================================================
    УГЛУБЛЁННЫЙ АНАЛИЗ
@@ -1979,7 +2022,6 @@ function buildPersonalityDeep(deep){
 
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
-  
   let burnoutLevel = 'Низкий';
   let burnoutClass = 'ok';
   let burnoutText = 'Уровень стресса в норме, задачи разнообразны и соответствуют возможностям.';
@@ -1995,7 +2037,6 @@ function buildPersonalityDeep(deep){
       burnoutText = 'Высокая нагрузка, но задачи приносят удовольствие. Это "здоровый вызов", но важно следить за отдыхом.';
     }
   }
-
   let uncLevel = 'Средняя';
   let uncClass = 'warn';
   let uncText = 'Спокойно относится к задачам средней сложности, но может теряться при резких изменениях.';
@@ -2008,7 +2049,6 @@ function buildPersonalityDeep(deep){
       uncText = 'Предпочитает четкие инструкции, регламенты и стабильные задачи. Необходимо избегать хаотичных нагрузок.';
     }
   }
-
   const avgMinsPerRow = base.totalRows ? base.totalMin / base.totalRows : 0;
   let cogStyle = { title: 'Смешанный', desc: 'Способен переключаться между разными типами задач.' };
   if (complexityIndex !== null && avgMinsPerRow > 60 && complexityIndex >= 1.2) {
@@ -2016,7 +2056,6 @@ function buildPersonalityDeep(deep){
   } else if (complexityIndex !== null && avgMinsPerRow < 30 && complexityIndex <= 0.9) {
       cogStyle = { title: 'Мультизадачность', desc: 'Быстро переключается между короткими задачами. Хорош в операционке.' };
   }
-
   let motivation = { title: 'Смешанная', desc: 'Разные факторы влияют на вовлеченность.' };
   if (interestIndex !== null && interestIndex >= 1.5) {
       motivation = { title: 'Внутренняя (Интерес)', desc: 'Движет сам процесс и увлеченность задачей.' };
@@ -2025,10 +2064,8 @@ function buildPersonalityDeep(deep){
   } else if (interestIndex !== null && interestIndex <= 0.8 && complexityIndex !== null && complexityIndex <= 0.9) {
       motivation = { title: 'Дисциплина / Обязанность', desc: 'Выполняет работу вне зависимости от интереса, опираясь на регламенты.' };
   }
-
   let teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
   const shareOf = (arr) => arr.reduce((s, t) => s + (base.byType.get(t) || 0), 0) / base.totalMin;
-  
   let roleScoresArr = [
     { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), desc: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
     { name: 'Наставник / Тренер', share: shareOf(['Обучение', 'Обучение персонала']), desc: 'Много времени уделяет обучению коллег и передаче знаний.' },
@@ -2037,21 +2074,16 @@ function buildPersonalityDeep(deep){
     { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), desc: 'Связующее звено команды, решает вопросы через общение.' },
     { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), desc: 'Держит в порядке процессы, документы и рутину.' }
   ];
-
   roleScoresArr.sort((a, b) => b.share - a.share);
-
   const topRoleObj = roleScoresArr[0];
   const eligibleCount = roleScoresArr.filter(s => s.share >= 0.15).length;
-
   if (topRoleObj.share >= 0.15) {
-      // Проверяем разницу между 1-м и 3-м местом ≤ 4% — это гарантирует, что три лидирующие роли близки друг к другу
       if (eligibleCount >= 3 && (roleScoresArr[0].share - roleScoresArr[2].share) <= 0.04) {
           teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
       } else {
           teamRole = { title: topRoleObj.name, desc: topRoleObj.desc };
       }
   }
-
   let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
   let morningMin = 0, eveningMin = 0;
   if (records) {
@@ -2075,36 +2107,29 @@ function buildPersonalityDeep(deep){
   if (avgMinsPerRow < 30 && complexityIndex > 1.2) growthAreas.push('Борьба с фрагментацией внимания при высокой сложности.');
   if (!growthAreas.length) growthAreas.push('Профиль сбалансирован. Поддерживайте текущий уровень.');
 
-  // РАСШИРЕННЫЕ УПРАВЛЕНЧЕСКИЕ РЕКОМЕНДАЦИИ
   const recs = [];
-  
   if (topRiasec === 'I') recs.push('Давать больше задач на автоматизацию, аналитику и стратегическое планирование.');
   if (topRiasec === 'S') recs.push('Вовлекать в коммуникацию с людьми, наставничество или разрешение конфликтов.');
   if (topRiasec === 'E') recs.push('Доверять ведение переговоров, работу с новыми проектами и внешними партнерами.');
   if (topRiasec === 'C') recs.push('Оставлять рутинные процессы под контролем, но постепенно добавлять задачи на оптимизацию.');
-
   if (burnoutLevel === 'Высокий') recs.push('⚠️ Срочно пересмотреть распределение сложных задач, добавить короткие перерывы и провести встречу 1-на-1.');
   if (uncLevel === 'Низкая') recs.push('Максимально четко ставить задачи, использовать чек-листы и подробные регламенты.');
   if (uncLevel === 'Высокая') recs.push('Привлекать к проектам с неопределенными требованиями на этапе их зарождения.');
-
   if (cogStyle.title === 'Глубокое погружение (Deep Work)') {
       recs.push('Блокировать время для глубокой работы (2-3 часа без встреч и уведомлений).');
   } else if (cogStyle.title === 'Мультизадачность') {
       recs.push('Чередовать короткие задачи с небольшими перерывами, чтобы избежать переутомления.');
   }
-
   if (peakTime.title === 'Жаворонок (Пик утром)') {
       recs.push('Планировать самые сложные и творческие задачи на первую половину дня (до 12:00).');
   } else if (peakTime.title === 'Сова (Пик вечером)') {
       recs.push('Не ставить важные задачи на раннее утро; пик продуктивности приходится на 15:00–18:00.');
   }
-
   if (motivation.title === 'Внутренняя (Интерес)') {
       recs.push('Поддерживать вовлеченность, давая сложные, но интересные проекты.');
   } else if (motivation.title === 'Дисциплина / Обязанность') {
       recs.push('Использовать четкие KPI и прозрачные правила для поддержания эффективности.');
   }
-
   if (teamRole.title === 'Наставник / Тренер') {
       recs.push('Привлекать к адаптации новичков и проведению внутренних воркшопов.');
   } else if (teamRole.title === 'Кризис-менеджер / Спасатель') {
@@ -2134,6 +2159,10 @@ function openDeepAnalysis(email){
     const avatar = getUserAvatarText(email);
     const displayName = getUserDisplayName(email);
     const personality = buildPersonalityDeep(deep); 
+
+    const tmData = analyzeTimeManagement(deep);
+    const timeMgmtHtml = buildTimeManagementHtml(tmData);
+
     const m = MONTHS[viewDate.getMonth()].toLowerCase();
     const y = viewDate.getFullYear();
     deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
@@ -2182,7 +2211,6 @@ function openDeepAnalysis(email){
       <div class="deep-kpi"><div class="val">${base.totalRows}</div><div class="lbl">Записей</div></div>
       <div class="deep-kpi"><div class="val">${base.daysCount.size}</div><div class="lbl">Дней</div></div>
       <div class="deep-kpi"><div class="val">${fmtHours(deep.avgPerActiveDay)}</div><div class="lbl">В среднем/день</div></div>
-      
       <div class="deep-kpi has-hint">
         <div class="val">${deep.interestIndex !== null ? deep.interestIndex.toFixed(2) : '—'}</div>
         <div class="lbl">Индекс интереса</div>
@@ -2192,7 +2220,6 @@ function openDeepAnalysis(email){
 1.1–1.6 — Рабочая норма
 ≥ 1.6 — Высокая вовлечённость</div>
       </div>
-      
       <div class="deep-kpi has-hint">
         <div class="val">${deep.complexityIndex !== null ? deep.complexityIndex.toFixed(2) : '—'}</div>
         <div class="lbl">Индекс сложности</div>
@@ -2231,12 +2258,10 @@ function openDeepAnalysis(email){
         <div class="deep-personality">
           <div class="psych-header"><h5>Профиль личности и рабочего стиля</h5></div>
           <div class="psych-grid">
-            
             <div class="psych-block">
               <div class="psych-title">Тип по Голланду (RIASEC): <span>${esc(personality.riasec.name)}</span></div>
               <div class="psych-desc">${esc(personality.riasec.desc)}</div>
             </div>
-
             <div class="psych-grid-2">
               <div class="psych-block">
                  <div class="psych-title">Когнитивный стиль:</div>
@@ -2247,7 +2272,6 @@ function openDeepAnalysis(email){
                  <div class="psych-desc"><b>${esc(personality.motivation.title)}</b><br>${esc(personality.motivation.desc)}</div>
               </div>
             </div>
-
             <div class="psych-grid-2">
               <div class="psych-block">
                  <div class="psych-title">Командная роль:</div>
@@ -2258,31 +2282,22 @@ function openDeepAnalysis(email){
                  <div class="psych-desc"><b>${esc(personality.peakTime.title)}</b><br>${esc(personality.peakTime.desc)}</div>
               </div>
             </div>
-
             <div class="psych-block">
               <div class="psych-title">Риск выгорания: <span class="psych-badge ${personality.burnout.class}">${personality.burnout.level}</span></div>
               <div class="psych-desc">${esc(personality.burnout.text)}</div>
             </div>
-            
             <div class="psych-block">
               <div class="psych-title">Толерантность к неопределенности: <span class="psych-badge ${personality.uncertainty.class}">${personality.uncertainty.level}</span></div>
               <div class="psych-desc">${esc(personality.uncertainty.text)}</div>
             </div>
-            
             <div class="psych-block">
               <div class="psych-title">Зоны роста и рекомендации:</div>
-              <ul class="psych-ul">
-                ${personality.growthAreas.map(r => `<li>${esc(r)}</li>`).join('')}
-              </ul>
+              <ul class="psych-ul">${personality.growthAreas.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
             </div>
-
             <div class="psych-block" style="background: #eff6ff; border-color: #bfdbfe;">
               <div class="psych-title">Управленческие рекомендации:</div>
-              <ul class="psych-ul">
-                ${personality.recs.map(r => `<li>${esc(r)}</li>`).join('')}
-              </ul>
+              <ul class="psych-ul">${personality.recs.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
             </div>
-            
           </div>
         </div>
       </div>`;
@@ -2299,6 +2314,7 @@ function openDeepAnalysis(email){
       <div class="deep-section"><h4>Динамика по неделям</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>
       ${heatHtml}
       ${flagsHtml}
+      ${timeMgmtHtml}
       ${typesHtml}
       <div class="deep-two">${likedTasksHtml || '<div></div>'}${dislikedTasksHtml || '<div></div>'}</div>
       ${topTasksHtml}
@@ -2325,7 +2341,6 @@ function drawDeepCharts(deep){
   const c1 = document.getElementById('deepChart1');
   const c2 = document.getElementById('deepChart2');
   if (!c1 || !c2) return;
-
   const weekLabels = ['Неделя 1','Неделя 2','Неделя 3','Неделя 4','Неделя 5'];
   deepChart1 = new Chart(c1.getContext('2d'), {
     type: 'bar',
@@ -2360,11 +2375,10 @@ function setupInsightsDelegation(){
 }
 
 /* =============================================================
-   МОДАЛКА: ЗАДАЧИ ПО КАТЕГОРИИ (клик на сегмент диаграммы)
+   МОДАЛКА: ЗАДАЧИ ПО КАТЕГОРИИ
    ============================================================= */
 function getCategoryColor(category, mode){
   if (CATEGORY_COLORS[category]) return CATEGORY_COLORS[category];
-  if (mode === 'interest' || mode === 'complexity') return '#94a3b8';
   return '#94a3b8';
 }
 
@@ -2373,22 +2387,13 @@ function openChartTasks(category, mode, sourceRecords, scopeLabel){
     const mins = rowMinutes(row);
     return mins > 0 && categoryOf(row, mode) === category;
   });
-  if (!filtered.length){
-    alert('В этой категории нет записей за выбранный период.');
-    return;
-  }
-  
+  if (!filtered.length){ alert('В этой категории нет записей за выбранный период.'); return; }
   chartTasksCurrent = { category, mode, records: filtered, scopeLabel: scopeLabel || '' };
   chartTasksGroupMode = 'day';
-  
   const modeTitle = mode === 'types' ? 'Вид работ' : (mode === 'interest' ? 'Интерес' : 'Сложность');
   document.getElementById('chartTasksTitle').textContent = category;
   document.getElementById('chartTasksSub').textContent = modeTitle + ' · ' + (scopeLabel || '');
-  
-  document.querySelectorAll('#chartTasksTabs button').forEach(b => {
-    b.classList.toggle('active', b.dataset.group === 'day');
-  });
-  
+  document.querySelectorAll('#chartTasksTabs button').forEach(b => { b.classList.toggle('active', b.dataset.group === 'day'); });
   renderChartTasksBody();
   chartTasksOverlay.classList.add('open');
 }
@@ -2401,58 +2406,31 @@ function closeChartTasks(){
 function renderChartTasksBody(){
   if (!chartTasksCurrent) return;
   const { category, mode, records } = chartTasksCurrent;
-  
   const groups = new Map();
   let totalMin = 0;
   records.forEach(({ email, date, row }) => {
     const [y, m, d] = date.split('-').map(Number);
     let key, label;
-    if (chartTasksGroupMode === 'day'){
-      key = date;
-      label = `${d} ${MONTHS_GEN[m-1]} ${y}`;
-    } else if (chartTasksGroupMode === 'month'){
-      key = `${y}-${pad2(m)}`;
-      label = `${MONTHS[m-1]} ${y}`;
-    } else {
-      key = `${y}`;
-      label = `${y} год`;
-    }
-    if (!groups.has(key)){
-      groups.set(key, { label, items: [], total: 0, sortKey: key });
-    }
+    if (chartTasksGroupMode === 'day'){ key = date; label = `${d} ${MONTHS_GEN[m-1]} ${y}`; }
+    else if (chartTasksGroupMode === 'month'){ key = `${y}-${pad2(m)}`; label = `${MONTHS[m-1]} ${y}`; }
+    else { key = `${y}`; label = `${y} год`; }
+    if (!groups.has(key)) groups.set(key, { label, items: [], total: 0, sortKey: key });
     const g = groups.get(key);
     const mins = rowMinutes(row);
     totalMin += mins;
-    g.items.push({
-      email,
-      date,
-      task: (row.task || '').trim() || '(без названия)',
-      mins,
-      start: row.start || '',
-      end: row.end || ''
-    });
+    g.items.push({ email, date, task: (row.task || '').trim() || '(без названия)', mins, start: row.start || '', end: row.end || '' });
     g.total += mins;
   });
-  
   const sortedGroups = [...groups.values()].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-  
-  document.getElementById('chartTasksTotal').innerHTML = 
-    `Найдено задач: <b>${records.length}</b> · Всего: <b>${formatDuration(totalMin) || '0:00'}</b>`;
-  
+  document.getElementById('chartTasksTotal').innerHTML = `Найдено задач: <b>${records.length}</b> · Всего: <b>${formatDuration(totalMin) || '0:00'}</b>`;
   const isAdmin = sessionEmail === ADMIN_EMAIL;
   const showUser = isAdmin && employeeFilter === 'all';
   const color = getCategoryColor(category, mode);
-  
   const groupHtml = sortedGroups.map(g => {
-    g.items.sort((a, b) => {
-      if (a.date !== b.date) return b.date.localeCompare(a.date);
-      return b.mins - a.mins;
-    });
-    
+    g.items.sort((a, b) => { if (a.date !== b.date) return b.date.localeCompare(a.date); return b.mins - a.mins; });
     const itemHtml = g.items.map(it => {
       const dayLabel = it.date.split('-').reverse().join('.');
       const timeLabel = (it.start && it.end) ? `${it.start}–${it.end}` : '';
-      const taskLabel = it.task + (timeLabel ? ` <span class="ct-time-inline" style="color:var(--muted);font-weight:500;font-size:11.5px;">· ${esc(timeLabel)}</span>` : '');
       return `
         <div class="chart-task-row">
           <div class="ct-date">${esc(dayLabel)}</div>
@@ -2460,7 +2438,6 @@ function renderChartTasksBody(){
           <div class="ct-time">${formatDuration(it.mins) || '0:00'}</div>
         </div>`;
     }).join('');
-    
     return `
       <div class="chart-task-group">
         <div class="chart-task-group-head">
@@ -2470,7 +2447,6 @@ function renderChartTasksBody(){
         ${itemHtml}
       </div>`;
   }).join('');
-  
   document.getElementById('chartTasksBody').innerHTML = groupHtml || '<div class="empty-msg">Нет записей.</div>';
 }
 
@@ -2492,17 +2468,11 @@ document.getElementById('prevBtn').addEventListener('click', () => { viewDate.se
 document.getElementById('nextBtn').addEventListener('click', () => { viewDate.setMonth(viewDate.getMonth() + 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
 document.getElementById('todayBtn').addEventListener('click', () => { const n = new Date(); viewDate = new Date(n.getFullYear(), n.getMonth(), 1); renderCalendar(); renderMonthChart(); renderMonthInsights(); });
 
-// Единый фильтр по сотрудникам (влияет на календарь, статистику и карточки)
 document.getElementById('accountSelect').addEventListener('change', e => {
   if (sessionEmail !== ADMIN_EMAIL) return;
   const val = e.target.value;
-  if (val === 'all') {
-    employeeFilter = 'all';
-    activeEmail = sessionEmail; // календарь показывает данные администратора
-  } else {
-    employeeFilter = val;
-    activeEmail = val;
-  }
+  if (val === 'all') { employeeFilter = 'all'; activeEmail = sessionEmail; }
+  else { employeeFilter = val; activeEmail = val; }
   renderCalendar();
   renderMonthChart();
   renderMonthInsights();
@@ -2625,16 +2595,13 @@ function openProfile(){
   if (!sessionEmail) return;
   const key = safeKey(sessionEmail);
   const u = users[key]; if (!u) return;
-  
   document.getElementById('profileEmail').textContent = u.email;
   document.getElementById('profileRole').textContent = u.email === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
   const created = u.createdAt ? new Date(u.createdAt) : null;
   document.getElementById('profileCreated').textContent = created ? `${created.getDate()} ${MONTHS_GEN[created.getMonth()]} ${created.getFullYear()}, ${pad2(created.getHours())}:${pad2(created.getMinutes())}` : '—';
-  
   document.getElementById('profFio').value = u.fio || '';
   document.getElementById('profPosition').value = u.position || '';
   document.getElementById('profDepartment').value = u.department || '';
-  
   const dataMsg = document.getElementById('profileDataMsg');
   dataMsg.className = 'auth-msg';
   if (forceProfileFill) {
@@ -2645,7 +2612,6 @@ function openProfile(){
     dataMsg.textContent = '';
     document.getElementById('profileClose').style.display = 'flex';
   }
-
   document.getElementById('changePwForm').reset();
   document.getElementById('profileMsg').className = 'auth-msg';
   document.getElementById('profileMsg').textContent = '';
@@ -2669,40 +2635,24 @@ profileOverlay.addEventListener('click', e => { if (e.target === profileOverlay)
 document.getElementById('profileDataForm').addEventListener('submit', async e => {
   e.preventDefault();
   const msg = document.getElementById('profileDataMsg'); msg.className = 'auth-msg'; msg.textContent = '';
-  
   const fio = document.getElementById('profFio').value.trim();
   const position = document.getElementById('profPosition').value.trim();
   const department = document.getElementById('profDepartment').value.trim();
-  
-  if (!fio || !position || !department) {
-    msg.textContent = 'Пожалуйста, заполните все поля.';
-    return;
-  }
-  
+  if (!fio || !position || !department) { msg.textContent = 'Пожалуйста, заполните все поля.'; return; }
   const key = safeKey(sessionEmail);
   const u = users[key];
-  u.fio = fio;
-  u.position = position;
-  u.department = department;
-  
+  u.fio = fio; u.position = position; u.department = department;
   if (db) {
     db.ref('users/' + key).update({ fio, position, department }).then(() => {
-      msg.className = 'auth-msg ok';
-      msg.textContent = 'Данные сохранены.';
-    }).catch(err => {
-      msg.textContent = 'Ошибка сохранения: ' + err.message;
-    });
+      msg.className = 'auth-msg ok'; msg.textContent = 'Данные сохранены.';
+    }).catch(err => { msg.textContent = 'Ошибка сохранения: ' + err.message; });
   } else {
-    saveUsers();
-    msg.className = 'auth-msg ok';
-    msg.textContent = 'Данные сохранены.';
+    saveUsers(); msg.className = 'auth-msg ok'; msg.textContent = 'Данные сохранены.';
   }
-  
   document.getElementById('userEmail').textContent = getUserDisplayName(sessionEmail);
   document.getElementById('userAvatar').textContent = getUserAvatarText(sessionEmail);
   refreshAdminBar();
   renderMonthInsights();
-  
   if (forceProfileFill) {
     forceProfileFill = false;
     document.getElementById('profileClose').style.display = 'flex';
@@ -2755,53 +2705,29 @@ document.addEventListener('keydown', e => {
    ============================================================= */
 (function init(){
   setupInsightsDelegation();
-  
   if (db) {
     db.ref('users').once('value').then(snap => {
       users = snap.val() || {};
       if (sessionEmail) {
         const key = safeKey(sessionEmail);
-        if (users[key]) {
-          activeEmail = sessionEmail;
-          showAppScreen();
-        } else {
-          sessionEmail = null; activeEmail = null;
-          localStorage.removeItem(SESSION_KEY);
-          showAuthScreen();
-        }
-      } else {
-        showAuthScreen();
-      }
-      
+        if (users[key]) { activeEmail = sessionEmail; showAppScreen(); }
+        else { sessionEmail = null; activeEmail = null; localStorage.removeItem(SESSION_KEY); showAuthScreen(); }
+      } else { showAuthScreen(); }
       db.ref('users').on('value', snap => {
         users = snap.val() || {};
-        refreshAdminBar();
-        renderMonthInsights();
-        renderCalendar();
-        renderMonthChart();
+        refreshAdminBar(); renderMonthInsights(); renderCalendar(); renderMonthChart();
       });
-      
       db.ref('data').on('value', snap => {
         allData = snap.val() || {};
-        renderCalendar();
-        renderMonthChart();
-        renderMonthInsights();
+        renderCalendar(); renderMonthChart(); renderMonthInsights();
       });
     });
   } else {
     if (sessionEmail) {
       const key = safeKey(sessionEmail);
-      if (users[key]) {
-        activeEmail = sessionEmail;
-        showAppScreen();
-      } else {
-        sessionEmail = null; activeEmail = null;
-        localStorage.removeItem(SESSION_KEY);
-        showAuthScreen();
-      }
-    } else {
-      showAuthScreen();
-    }
+      if (users[key]) { activeEmail = sessionEmail; showAppScreen(); }
+      else { sessionEmail = null; activeEmail = null; localStorage.removeItem(SESSION_KEY); showAuthScreen(); }
+    } else { showAuthScreen(); }
   }
 })();
 </script>
