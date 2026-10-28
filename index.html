@@ -8,6 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{ --bg:#f1f5f9; --card:#fff; --border:#e2e8f0; --text:#0f172a; --muted:#64748b; --accent:#2563eb; --accent-light:#dbeafe; --danger:#ef4444; }
   *{box-sizing:border-box;}
@@ -624,6 +625,18 @@
           </div>
         </form>
       </div>
+      
+      <!-- Блок импорта данных -->
+      <div class="profile-section" style="border-top: 1px dashed var(--border); padding-top: 18px; margin-top: 18px;">
+        <h3>Импорт данных</h3>
+        <p class="hint" style="margin-bottom: 10px;">Загрузите файл Excel (.xlsx, .xls) или CSV. Ожидаемые столбцы: <b>Дата, Начало, Конец, Комментарии, Вид работ</b>.</p>
+        <div class="profile-form-actions">
+          <button type="button" class="btn primary" id="importDataBtn">Выбрать файл для импорта</button>
+          <input type="file" id="importFileInput" accept=".csv, .xlsx, .xls" class="hidden">
+        </div>
+        <div class="auth-msg" id="importMsg" style="margin-top: 10px;"></div>
+      </div>
+      
     </div>
   </div>
 </div>
@@ -666,7 +679,8 @@ const WORKTYPES  = [
   'Работа с почтой','АХО','УК','IT','HD и доп. отгрузки','Зарплата','КРО',
   'ОТ и ПБ','Персонал','Оптимизация складских процессов',
   'Работа с договорами/Бухгалтерия','Рабочие вопросы (текущая операционка)',
-  'Совещание/ЗУМ','Обучение','Обучение персонала'
+  'Совещание/ЗУМ','Обучение','Обучение персонала',
+  'Постановка и контроль задач'
 ];
 const ORDER = { types: WORKTYPES, interest: INTEREST, complexity: COMPLEXITY };
 const USER_PALETTE = ['#2563eb','#16a34a','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#a855f7','#64748b','#0ea5e9','#eab308','#10b981','#f43f5e','#6366f1','#d946ef'];
@@ -676,6 +690,7 @@ const CATEGORY_COLORS = {
   'Персонал':'#14b8a6','Оптимизация складских процессов':'#a855f7',
   'Работа с договорами/Бухгалтерия':'#64748b','Рабочие вопросы (текущая операционка)':'#0ea5e9',
   'Совещание/ЗУМ':'#f43f5e','Обучение':'#6366f1','Обучение персонала':'#10b981',
+  'Постановка и контроль задач':'#8b5cf6',
   'Не указано':'#94a3b8',
   'Не интересно':'#ef4444','Нейтрально':'#f59e0b','Интересно':'#22c55e',
   'Легко':'#22c55e','Средне':'#f59e0b','Сложно':'#ef4444'
@@ -1538,7 +1553,8 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
     { name: 'Кризис-менеджер / Спасатель', share: shareOf(['HD и доп. отгрузки']), text: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' },
     { name: 'Аудитор / Хранитель регламентов', share: shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']), text: 'Отвечает за порядок, регламенты, безопасность и документооборот.' },
     { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), text: 'Связующее звено команды, решает вопросы через общение.' },
-    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), text: 'Держит в порядке процессы, документы и рутину.' }
+    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), text: 'Держит в порядке процессы, документы и рутину.' },
+    { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), text: 'Управляет командой, ставит цели и контролирует их исполнение.' }
   ];
   scoresArr.sort((a, b) => b.share - a.share);
   let topRole = 'Универсал';
@@ -1720,7 +1736,7 @@ window.addEventListener('resize', updateCarouselButtons);
 
 
 /* =============================================================
-   ★★★ ТАЙМ-МЕНЕДЖМЕНТ ★★★
+   ТАЙМ-МЕНЕДЖМЕНТ
    ============================================================= */
 function analyzeTimeManagement(deep){
   const records = (deep.records || []).filter(r => rowMinutes(r.row) > 0);
@@ -1998,11 +2014,11 @@ function analyzeDeep(email){
 
 function buildPersonalityDeep(deep){
   const { base, conclusion, interestIndex, complexityIndex, typeStats, records } = deep;
-  const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
+  const riasecScores = { I: 0, S: 0, E: 0, C: 0, R: 0, A: 0 };
   base.byType.forEach((mins, type) => {
     if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
     else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
-    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки'].includes(type)) riasecScores.E += mins;
+    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки', 'Постановка и контроль задач'].includes(type)) riasecScores.E += mins;
     else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК'].includes(type)) riasecScores.C += mins;
   });
 
@@ -2010,7 +2026,9 @@ function buildPersonalityDeep(deep){
     I: { name: 'Исследователь (Investigative)', desc: 'Склонен к анализу, решению сложных задач и оптимизации. Любит работать с данными и искать скрытые закономерности.' },
     S: { name: 'Социальный (Social)', desc: 'Ориентирован на людей и коммуникацию. Отлично чувствует себя в роли помощника, наставника или координатора.' },
     E: { name: 'Предприимчивый (Enterprising)', desc: 'Нацелен на результат, любит влиять на процессы, вести переговоры и брать на себя ответственность за бизнес-показатели.' },
-    C: { name: 'Конвенциональный (Conventional)', desc: 'Ценит порядок, стабильность и четкие правила. Отлично справляется с рутиной, документооборотом и поддержанием процессов.' }
+    C: { name: 'Конвенциональный (Conventional)', desc: 'Ценит порядок, стабильность и четкие правила. Отлично справляется с рутиной, документооборотом и поддержанием процессов.' },
+    R: { name: 'Реалистичный (Realistic)', desc: 'Практик, ориентированный на конкретные действия и осязаемый результат.' },
+    A: { name: 'Артистичный (Artistic)', desc: 'Творческий подход, самовыражение и нестандартные решения.' }
   };
 
   let topRiasec = 'I';
@@ -2022,6 +2040,7 @@ function buildPersonalityDeep(deep){
 
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
+
   let burnoutLevel = 'Низкий';
   let burnoutClass = 'ok';
   let burnoutText = 'Уровень стресса в норме, задачи разнообразны и соответствуют возможностям.';
@@ -2072,7 +2091,8 @@ function buildPersonalityDeep(deep){
     { name: 'Кризис-менеджер / Спасатель', share: shareOf(['HD и доп. отгрузки']), desc: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' },
     { name: 'Аудитор / Хранитель регламентов', share: shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']), desc: 'Отвечает за порядок, регламенты, безопасность и документооборот.' },
     { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), desc: 'Связующее звено команды, решает вопросы через общение.' },
-    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), desc: 'Держит в порядке процессы, документы и рутину.' }
+    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК']), desc: 'Держит в порядке процессы, документы и рутину.' },
+    { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), desc: 'Управляет командой, ставит цели и контролирует их исполнение.' }
   ];
   roleScoresArr.sort((a, b) => b.share - a.share);
   const topRoleObj = roleScoresArr[0];
@@ -2081,9 +2101,25 @@ function buildPersonalityDeep(deep){
       if (eligibleCount >= 3 && (roleScoresArr[0].share - roleScoresArr[2].share) <= 0.04) {
           teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
       } else {
-          teamRole = { title: topRoleObj.name, desc: topRoleObj.desc };
+          // Синхронизируем командную роль с доминирующим RIASEC-типом
+          let bestRoleForRiasec = topRoleObj;
+          if (topRiasec === 'I') {
+              bestRoleForRiasec = roleScoresArr.find(r => r.name === 'Аналитик / Инноватор') || topRoleObj;
+          } else if (topRiasec === 'S') {
+              const sRoles = roleScoresArr.filter(r => r.name === 'Наставник / Тренер' || r.name === 'Коммуникатор / Дипломат');
+              sRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = sRoles[0] || topRoleObj;
+          } else if (topRiasec === 'E') {
+              const eRoles = roleScoresArr.filter(r => r.name === 'Кризис-менеджер / Спасатель' || r.name === 'Аудитор / Хранитель регламентов' || r.name === 'Руководитель');
+              eRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = eRoles[0] || topRoleObj;
+          } else if (topRiasec === 'C') {
+              bestRoleForRiasec = roleScoresArr.find(r => r.name === 'Реализатор / Организатор') || topRoleObj;
+          }
+          teamRole = { title: bestRoleForRiasec.name, desc: bestRoleForRiasec.desc };
       }
   }
+  
   let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
   let morningMin = 0, eveningMin = 0;
   if (records) {
@@ -2136,6 +2172,8 @@ function buildPersonalityDeep(deep){
       recs.push('Ставить на задачи с высоким приоритетом и сжатыми дедлайнами.');
   } else if (teamRole.title === 'Аудитор / Хранитель регламентов') {
       recs.push('Делегировать проверку регламентов, аудит безопасности и работу с документами.');
+  } else if (teamRole.title === 'Руководитель') {
+      recs.push('Передавать больше задач на планирование, целеполагание и контроль исполнения.');
   }
 
   return { riasec: riasecResult, burnout: { level: burnoutLevel, class: burnoutClass, text: burnoutText }, uncertainty: { level: uncLevel, class: uncClass, text: uncText }, cogStyle, motivation, teamRole, peakTime, growthAreas, recs };
@@ -2615,6 +2653,8 @@ function openProfile(){
   document.getElementById('changePwForm').reset();
   document.getElementById('profileMsg').className = 'auth-msg';
   document.getElementById('profileMsg').textContent = '';
+  document.getElementById('importMsg').className = 'auth-msg';
+  document.getElementById('importMsg').textContent = '';
   profileOverlay.classList.add('open');
   setTimeout(() => document.getElementById('profFio').focus(), 50);
 }
@@ -2626,6 +2666,7 @@ function closeProfile(){
   document.getElementById('changePwForm').reset();
   document.getElementById('profileDataMsg').textContent = '';
   document.getElementById('profileMsg').textContent = '';
+  document.getElementById('importMsg').textContent = '';
 }
 
 document.getElementById('userChip').addEventListener('click', openProfile);
@@ -2691,6 +2732,160 @@ document.getElementById('forgotPwFromProfile').addEventListener('click', async (
   } catch(err){ alert(err.message || 'Ошибка.'); }
 });
 
+/* =============================================================
+   ИМПОРТ ДАННЫХ
+   ============================================================= */
+document.getElementById('importDataBtn').addEventListener('click', () => {
+  document.getElementById('importFileInput').click();
+});
+
+document.getElementById('importFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const msgEl = document.getElementById('importMsg');
+  msgEl.className = 'auth-msg warn';
+  msgEl.textContent = 'Обработка файла...';
+  
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      
+      if (rows.length < 2) throw new Error('Файл пуст или не содержит данных.');
+      
+      const headers = rows[0].map(h => String(h).trim().toLowerCase());
+      
+      const idxDate = headers.findIndex(h => h === 'дата' || h === 'date');
+      const idxStart = headers.findIndex(h => h === 'начало' || h === 'start');
+      const idxEnd = headers.findIndex(h => h === 'конец' || h === 'end');
+      const idxComment = headers.findIndex(h => h === 'комментарии' || h === 'комментарий' || h === 'что делал' || h === 'comments');
+      const idxWorkType = headers.findIndex(h => h === 'вид работ' || h === 'worktype');
+      
+      if (idxDate === -1 || idxStart === -1 || idxEnd === -1 || idxComment === -1 || idxWorkType === -1) {
+        throw new Error('Не найдены обязательные столбцы: Дата, Начало, Конец, Комментарии, Вид работ.');
+      }
+      
+      const importedRowsByDate = {};
+      let count = 0;
+      
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0 || row[idxDate] === undefined || row[idxDate] === '') continue;
+        
+        const dateStr = parseDateVal(row[idxDate]);
+        if (!dateStr) continue;
+        
+        const startStr = parseTimeVal(row[idxStart]);
+        const endStr = parseTimeVal(row[idxEnd]);
+        const comment = String(row[idxComment] || '').trim();
+        const workType = String(row[idxWorkType] || '').trim();
+        
+        if (!startStr && !endStr && !comment && !workType) continue;
+        
+        const duration = calcDuration(startStr, endStr);
+        
+        const newRow = {
+          task: comment,
+          start: startStr,
+          end: endStr,
+          duration: duration,
+          complexity: '',
+          interest: '',
+          workType: workType,
+          comment: ''
+        };
+        
+        if (!importedRowsByDate[dateStr]) importedRowsByDate[dateStr] = [];
+        importedRowsByDate[dateStr].push(newRow);
+        count++;
+      }
+      
+      if (count === 0) throw new Error('Не найдено ни одной строки для импорта.');
+      
+      const key = safeKey(sessionEmail);
+      if (!allData[key]) allData[key] = {};
+      
+      let mergedDays = 0;
+      for (const [dateStr, newRows] of Object.entries(importedRowsByDate)) {
+         if (!allData[key][dateStr]) {
+           allData[key][dateStr] = newRows;
+         } else {
+           allData[key][dateStr] = getRows(allData[key], dateStr).concat(newRows);
+         }
+         mergedDays++;
+      }
+      
+      const finishImport = () => {
+        msgEl.className = 'auth-msg ok';
+        msgEl.innerHTML = `Успешно импортировано <b>${count}</b> записей за <b>${mergedDays}</b> дн.`;
+        renderCalendar();
+        renderMonthChart();
+        renderMonthInsights();
+        document.getElementById('importFileInput').value = '';
+      };
+      
+      if (db) {
+        db.ref('data/' + key).set(allData[key]).then(finishImport).catch(err => {
+          msgEl.className = 'auth-msg';
+          msgEl.textContent = 'Ошибка сохранения: ' + err.message;
+        });
+      } else {
+        localStorage.setItem(DATA_KEY, JSON.stringify(allData));
+        finishImport();
+      }
+      
+    } catch (err) {
+      msgEl.className = 'auth-msg';
+      msgEl.textContent = err.message || 'Ошибка при чтении файла';
+      document.getElementById('importFileInput').value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function parseDateVal(val) {
+   if (!val) return null;
+   if (typeof val === 'number') {
+       const dateInfo = XLSX.SSF.parse_date_code(val);
+       if (dateInfo) return `${dateInfo.y}-${pad2(dateInfo.m)}-${pad2(dateInfo.d)}`;
+   }
+   if (val instanceof Date) {
+       return keyOf(val.getFullYear(), val.getMonth(), val.getDate());
+   }
+   let str = String(val).trim();
+   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
+   let m = str.match(/^(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{4})/);
+   if (m) return `${m[3]}-${pad2(parseInt(m[2], 10))}-${pad2(parseInt(m[1], 10))}`;
+   const d = new Date(str);
+   if (!isNaN(d.getTime())) return keyOf(d.getFullYear(), d.getMonth(), d.getDate());
+   return null;
+}
+
+function parseTimeVal(val) {
+   if (val === undefined || val === null || val === '') return '';
+   if (val instanceof Date) {
+       return pad2(val.getHours()) + ':' + pad2(val.getMinutes());
+   }
+   if (typeof val === 'number') {
+       const totalMins = Math.round(val * 24 * 60);
+       const h = Math.floor(totalMins / 60) % 24;
+       const m = totalMins % 60;
+       return pad2(h) + ':' + pad2(m);
+   }
+   let str = String(val).trim();
+   let m = str.match(/^(\d{1,2}):(\d{2})/);
+   if (m) {
+       return pad2(parseInt(m[1], 10)) + ':' + m[2];
+   }
+   return str;
+}
+
+/* =============================================================
+   СТАРТ
+   ============================================================= */
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (chartTasksOverlay.classList.contains('open')) closeChartTasks();
@@ -2700,9 +2895,6 @@ document.addEventListener('keydown', e => {
   else if (overlay.classList.contains('open')) closeDay();
 });
 
-/* =============================================================
-   СТАРТ
-   ============================================================= */
 (function init(){
   setupInsightsDelegation();
   if (db) {
