@@ -468,7 +468,18 @@
 
   <div class="insights-card hidden" id="monthInsights">
     <div class="insights-head">
-      <div class="insights-title"><span id="monthInsightsTitle">Заключение по сотрудникам</span><small>Нажмите на карточку, чтобы открыть углублённый анализ</small></div>
+      <div class="insights-title">
+        <span id="monthInsightsTitle">Заключение по сотрудникам</span>
+        <small>Нажмите на карточку, чтобы открыть углублённый анализ</small>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-left:auto;">
+        <select id="insightPeriod" style="width:130px; padding:6px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border-color:var(--border); outline:none; cursor:pointer;">
+          <option value="all" selected>Весь период</option>
+          <option value="month">Месяц</option>
+          <option value="day">День</option>
+        </select>
+        <input type="date" id="insightDate" class="hidden" style="width:130px; padding:5px 10px; font-size:12.5px; font-weight:600; border-radius:8px; border:1px solid var(--border); outline:none;">
+      </div>
       <span class="insights-admin-badge">Только для админа</span>
     </div>
     <div class="insights-carousel-wrap" id="monthInsightsWrap">
@@ -746,6 +757,10 @@ let employeeFilter = 'all';
 let chartTasksGroupMode = 'day';
 let chartTasksCurrent = null;
 
+// Настройки периода для карточек и углубленного анализа
+let insightPeriod = 'all';
+let insightDate = new Date();
+
 /* =============================================================
    УТИЛИТЫ
    ============================================================= */
@@ -884,6 +899,19 @@ function getTop3Tasks(map) {
     .slice(0,3)
     .map(([task, mins]) => `· ${esc(task)} (${fmtHours(mins)})`)
     .join('<br>');
+}
+
+// Функция получения диапазона дат для карточек и углубленного анализа
+function getInsightRange() {
+  if (insightPeriod === 'month') {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    return { first: keyOf(y, m, 1), last: keyOf(y, m, new Date(y, m + 1, 0).getDate()) };
+  } else if (insightPeriod === 'day') {
+    const key = keyOf(insightDate.getFullYear(), insightDate.getMonth(), insightDate.getDate());
+    return { first: key, last: key };
+  } else {
+    return { first: '0000-00-00', last: '9999-99-99' };
+  }
 }
 
 /* =============================================================
@@ -1048,6 +1076,8 @@ function showAppScreen(){
   document.getElementById('userRole').textContent = sessionEmail === ADMIN_EMAIL ? 'Администратор' : 'Пользователь';
   const todayStr = new Date().toISOString().slice(0,10);
   document.getElementById('statsDate').value = todayStr;
+  document.getElementById('insightDate').value = todayStr;
+  insightDate = new Date();
   refreshAdminBar();
   renderCalendar();
   renderMonthChart();
@@ -1293,6 +1323,20 @@ document.getElementById('statsPeriod').addEventListener('change', (e) => {
 });
 document.getElementById('statsDate').addEventListener('change', renderMonthChart);
 
+// Фильтры для карточек
+document.getElementById('insightPeriod').addEventListener('change', (e) => {
+  insightPeriod = e.target.value;
+  document.getElementById('insightDate').classList.toggle('hidden', insightPeriod !== 'day');
+  renderMonthInsights();
+});
+document.getElementById('insightDate').addEventListener('change', (e) => {
+  if (e.target.value) {
+    const [y, m, d] = e.target.value.split('-').map(Number);
+    insightDate = new Date(y, m - 1, d);
+    renderMonthInsights();
+  }
+});
+
 function collectStatsRecords(){
   const period = document.getElementById('statsPeriod').value;
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
@@ -1454,10 +1498,6 @@ function collectRecordsForUser(email, fromKey, toKey){
   });
   return out;
 }
-function monthRangeKeys(){
-  const y = viewDate.getFullYear(), m = viewDate.getMonth();
-  return { first: keyOf(y, m, 1), last: keyOf(y, m, new Date(y, m + 1, 0).getDate()) };
-}
 
 function analyzeRecords(records){
   const result = { 
@@ -1543,9 +1583,22 @@ function buildConclusion(a){
   };
 }
 
-// Условие «Универсал»: минимум 3 роли ≥15%, и разница между 1-м и 3-м местом ≤ 4%
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
+  
+  const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
+  byType.forEach((mins, type) => {
+    if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
+    else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
+    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки', 'Постановка и контроль задач'].includes(type)) riasecScores.E += mins;
+    else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК'].includes(type)) riasecScores.C += mins;
+  });
+  let topRiasec = 'I';
+  let maxScore = -1;
+  for (const [key, score] of Object.entries(riasecScores)) {
+    if (score > maxScore) { maxScore = score; topRiasec = key; }
+  }
+
   const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
   let scoresArr = [
     { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), text: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
@@ -1557,17 +1610,33 @@ function guessPersonality({ interestIndex, complexityIndex, dominantInterest, do
     { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), text: 'Управляет командой, ставит цели и контролирует их исполнение.' }
   ];
   scoresArr.sort((a, b) => b.share - a.share);
+  
   let topRole = 'Универсал';
   let text = 'Способен закрывать разные участки работы.';
   const top = scoresArr[0];
   const eligibleCount = scoresArr.filter(s => s.share >= 0.15).length;
+  
   if (top.share >= 0.15) {
       if (eligibleCount >= 3 && (scoresArr[0].share - scoresArr[2].share) <= 0.04) {
           topRole = 'Универсал';
           text = 'Способен закрывать разные участки работы.';
       } else {
-          topRole = top.name;
-          text = top.text;
+          let bestRoleForRiasec = top;
+          if (topRiasec === 'I') {
+              bestRoleForRiasec = scoresArr.find(r => r.name === 'Аналитик / Инноватор') || top;
+          } else if (topRiasec === 'S') {
+              const sRoles = scoresArr.filter(r => r.name === 'Наставник / Тренер' || r.name === 'Коммуникатор / Дипломат');
+              sRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = sRoles[0] || top;
+          } else if (topRiasec === 'E') {
+              const eRoles = scoresArr.filter(r => r.name === 'Кризис-менеджер / Спасатель' || r.name === 'Аудитор / Хранитель регламентов' || r.name === 'Руководитель');
+              eRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = eRoles[0] || top;
+          } else if (topRiasec === 'C') {
+              bestRoleForRiasec = scoresArr.find(r => r.name === 'Реализатор / Организатор') || top;
+          }
+          topRole = bestRoleForRiasec.name;
+          text = bestRoleForRiasec.text;
       }
   }
   return { title: topRole, text };
@@ -1640,31 +1709,33 @@ function renderMonthInsights(){
   const empty = document.getElementById('monthInsightsEmpty');
   if (sessionEmail !== ADMIN_EMAIL){ card.classList.add('hidden'); return; }
   card.classList.remove('hidden');
-  const { first, last } = monthRangeKeys();
+  
+  const range = getInsightRange();
   const keys = Object.keys(allData).sort();
   const items = [];
+  
   keys.forEach(key => {
     const u = users[key];
     const email = u ? u.email : key; 
     if (employeeFilter !== 'all' && email !== employeeFilter) return;
-    const records = collectRecordsForUser(email, first, last);
+    const records = collectRecordsForUser(email, range.first, range.last);
     if (!records.length) return;
     const conclusion = buildConclusion(analyzeRecords(records));
     if (conclusion.empty) return;
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const firstDate = getFirstRecordDate(email);
-    const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
-    let totalMinAllTime = 0;
-    const userKey = safeKey(email);
-    const userData = allData[userKey] || {};
-    Object.keys(userData).forEach(dateKey => {
-        let d = parseDateStr(dateKey);
-        if (d <= today) {
-            getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
-        }
-    });
-    const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
+    
+    let workingDays = 1;
+    if (insightPeriod === 'all') {
+      const firstDate = getFirstRecordDate(email);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      workingDays = Math.max(1, countWorkingDays(firstDate, today));
+    } else if (insightPeriod === 'month') {
+      workingDays = Math.max(1, countWorkingDays(parseDateStr(range.first), parseDateStr(range.last)));
+    } else {
+      workingDays = 1; // день
+    }
+    const dayPct = Math.round((conclusion.totalMin / (workingDays * 480)) * 100);
+
     items.push({ email, conclusion, dayPct });
   });
   items.sort((a, b) => b.dayPct - a.dayPct);
@@ -1673,9 +1744,13 @@ function renderMonthInsights(){
   empty.style.display = items.length ? 'none' : 'block';
   const titleEl = document.getElementById('monthInsightsTitle');
   if (titleEl){
+    let periodName = 'Весь период';
+    if (insightPeriod === 'month') periodName = MONTHS[viewDate.getMonth()] + ' ' + viewDate.getFullYear();
+    else if (insightPeriod === 'day') periodName = `${insightDate.getDate()} ${MONTHS_GEN[insightDate.getMonth()]} ${insightDate.getFullYear()}`;
+    
     titleEl.textContent = employeeFilter !== 'all'
-      ? 'Заключение: ' + getUserDisplayName(employeeFilter)
-      : 'Заключение по сотрудникам';
+      ? 'Заключение: ' + getUserDisplayName(employeeFilter) + ' (' + periodName + ')'
+      : 'Заключение по сотрудникам (' + periodName + ')';
   }
   updateCarouselButtons();
 }
@@ -1687,20 +1762,11 @@ function renderDayInsights(){
   if (!currentKey || !activeEmail){ dayInsightsGrid.innerHTML = ''; return; }
   const key = safeKey(activeEmail);
   const records = getRows(allData[key] || {}, currentKey).map(row => ({ date: currentKey, row }));
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const firstDate = getFirstRecordDate(activeEmail);
-  const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
-  let totalMinAllTime = 0;
-  const userData = allData[key] || {};
-  Object.keys(userData).forEach(dateKey => {
-      let d = parseDateStr(dateKey);
-      if (d <= today) {
-          getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
-      }
-  });
-  const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
-  dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, buildConclusion(analyzeRecords(records)), dayPct);
+  
+  const conclusion = buildConclusion(analyzeRecords(records));
+  const dayPct = Math.round((conclusion.totalMin / 480) * 100);
+
+  dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, conclusion, dayPct);
 }
 
 /* =============================================================
@@ -1744,15 +1810,15 @@ function analyzeTimeManagement(deep){
 
   const stats = {
     totalTasks: 0, tasksWithTimes: 0, totalMins: 0,
-    shortTasks: 0,    // < 15 мин
-    mediumTasks: 0,   // 15-60 мин
-    longTasks: 0,     // 60-120 мин
-    veryLongTasks: 0, // > 120 мин
+    shortTasks: 0,
+    mediumTasks: 0,
+    longTasks: 0,
+    veryLongTasks: 0,
     daysWithOverlaps: 0,
     daysWithGaps: 0,
-    morningMins: 0,   // до 12:00
-    afternoonMins: 0, // 12:00–17:00
-    eveningMins: 0,   // после 17:00
+    morningMins: 0,
+    afternoonMins: 0,
+    eveningMins: 0,
     totalDays: 0,
     tasksPerDay: [],
     dayDurations: []
@@ -1952,68 +2018,124 @@ document.getElementById('deepClose').addEventListener('click', closeDeep);
 deepOverlay.addEventListener('click', e => { if (e.target === deepOverlay) closeDeep(); });
 
 function analyzeDeep(email){
-  const { first, last } = monthRangeKeys();
-  const records = collectRecordsForUser(email, first, last);
+  const range = getInsightRange();
+  const records = collectRecordsForUser(email, range.first, range.last);
   const base = analyzeRecords(records);
   if (base.totalMin <= 0) return null;
-  const y = viewDate.getFullYear(), m = viewDate.getMonth();
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const perDay = Array.from({ length: daysInMonth }, () => ({ mins: 0, interest: 0, interestW: 0, complex: 0, complexW: 0 }));
-  const weeks = Array.from({ length: 5 }, () => ({ mins: 0, interest: 0, interestW: 0, complex: 0, complexW: 0, count: 0 }));
-  const tasksMap = new Map();
-  records.forEach(({ date, row }) => {
-    const mins = rowMinutes(row); if (mins <= 0) return;
-    const day = Number(date.slice(8, 10));
-    const wi = Math.min(4, Math.floor((day - 1) / 7));
-    const iIdx = row.interest ? INTEREST.indexOf(row.interest) : -1;
-    const cIdx = row.complexity ? COMPLEXITY.indexOf(row.complexity) : -1;
-    perDay[day - 1].mins += mins;
-    if (iIdx >= 0){ perDay[day - 1].interest += mins; perDay[day - 1].interestW += mins * iIdx; }
-    if (cIdx >= 0){ perDay[day - 1].complex += mins; perDay[day - 1].complexW += mins * cIdx; }
-    weeks[wi].mins += mins; weeks[wi].count++;
-    if (iIdx >= 0){ weeks[wi].interest += mins; weeks[wi].interestW += mins * iIdx; }
-    if (cIdx >= 0){ weeks[wi].complex += mins; weeks[wi].complexW += mins * cIdx; }
-    const tKey = (row.task || '').trim() || '(без названия)';
-    if (!tasksMap.has(tKey)) tasksMap.set(tKey, { task: tKey, minutes: 0, interest: -1, complexity: -1, type: row.workType || 'Не указано' });
-    const t = tasksMap.get(tKey);
-    t.minutes += mins;
-    if (iIdx >= 0) t.interest = Math.max(t.interest, iIdx);
-    if (cIdx >= 0) t.complexity = Math.max(t.complexity, cIdx);
-  });
-  const tasks = [...tasksMap.values()].sort((a,b) => b.minutes - a.minutes);
-  const interestIndex = (() => { const t = INTEREST.reduce((s, l) => s + (base.byInterest.get(l) || 0), 0); if (!t) return null; return INTEREST.reduce((s, l) => s + (base.byInterest.get(l) || 0) * INTEREST.indexOf(l), 0) / t; })();
-  const complexityIndex = (() => { const t = COMPLEXITY.reduce((s, l) => s + (base.byComplexity.get(l) || 0), 0); if (!t) return null; return COMPLEXITY.reduce((s, l) => s + (base.byComplexity.get(l) || 0) * COMPLEXITY.indexOf(l), 0) / t; })();
+
+  let chartLabels = [];
+  let chartMins = [];
+  let chartInterest = [];
+  let chartComplex = [];
+  let chartTitle = '';
+
+  if (insightPeriod === 'all') {
+    const byMonth = new Map();
+    records.forEach(({ date, row }) => {
+      const mins = rowMinutes(row); if (mins <= 0) return;
+      const mKey = date.slice(0, 7);
+      if (!byMonth.has(mKey)) byMonth.set(mKey, { mins: 0, intW: 0, intM: 0, compW: 0, compM: 0 });
+      const b = byMonth.get(mKey);
+      b.mins += mins;
+      if (row.interest) { b.intW += mins * INTEREST.indexOf(row.interest); b.intM += mins; }
+      if (row.complexity) { b.compW += mins * COMPLEXITY.indexOf(row.complexity); b.compM += mins; }
+    });
+    const sortedKeys = [...byMonth.keys()].sort();
+    chartLabels = sortedKeys.map(k => {
+      const [y, m] = k.split('-');
+      return MONTHS[parseInt(m)-1].slice(0,3) + ' ' + y.slice(2);
+    });
+    chartMins = sortedKeys.map(k => round2(byMonth.get(k).mins / 60));
+    chartInterest = sortedKeys.map(k => { const b = byMonth.get(k); return b.intM ? round2(b.intW / b.intM) : null; });
+    chartComplex = sortedKeys.map(k => { const b = byMonth.get(k); return b.compM ? round2(b.compW / b.compM) : null; });
+    chartTitle = 'Динамика по месяцам';
+  } else if (insightPeriod === 'month') {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const weeks = Array.from({ length: 5 }, () => ({ mins: 0, intW: 0, intM: 0, compW: 0, compM: 0 }));
+    records.forEach(({ date, row }) => {
+      const mins = rowMinutes(row); if (mins <= 0) return;
+      const day = Number(date.slice(8, 10));
+      const wi = Math.min(4, Math.floor((day - 1) / 7));
+      weeks[wi].mins += mins;
+      if (row.interest) { weeks[wi].intW += mins * INTEREST.indexOf(row.interest); weeks[wi].intM += mins; }
+      if (row.complexity) { weeks[wi].compW += mins * COMPLEXITY.indexOf(row.complexity); weeks[wi].compM += mins; }
+    });
+    chartLabels = ['Неделя 1','Неделя 2','Неделя 3','Неделя 4','Неделя 5'];
+    chartMins = weeks.map(w => round2(w.mins / 60));
+    chartInterest = weeks.map(w => w.intM ? round2(w.intW / w.intM) : null);
+    chartComplex = weeks.map(w => w.compM ? round2(w.compW / w.compM) : null);
+    chartTitle = 'Динамика по неделям';
+  } else {
+    chartTitle = 'Нет данных для графика';
+  }
+
+  let heatmapHtml = '';
+  if (insightPeriod === 'month') {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const perDay = Array.from({ length: daysInMonth }, () => 0);
+    records.forEach(({ date, row }) => {
+      const day = Number(date.slice(8, 10));
+      perDay[day - 1] += rowMinutes(row);
+    });
+    const maxDayMins = Math.max(1, ...perDay);
+    const heatCells = perDay.map((mins, i) => {
+      const day = i + 1;
+      const intensity = mins / maxDayMins;
+      const bg = mins === 0 ? '#f1f5f9' : `rgba(37,99,235,${0.15 + intensity * 0.75})`;
+      return `<div class="hm-day ${mins > 0 ? 'has-data' : ''}" style="background:${bg};" title="${day}: ${fmtHours(mins)}">${day}</div>`;
+    }).join('');
+    heatmapHtml = `<div class="deep-section"><h4>Тепловая карта по дням</h4><div class="deep-heatmap">${heatCells}</div></div>`;
+  }
+
   const flags = [];
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
+  
+  const conclusion = buildConclusion(base);
+  const interestIndex = conclusion.interestIndex;
+  const complexityIndex = conclusion.complexityIndex;
+
   if (interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'bad', title:'Низкий интерес', text:'Больше половины времени — неинтересные задачи.' });
   if (interestIndex !== null && interestIndex >= 1.6) flags.push({ type:'ok', title:'Высокая вовлечённость', text:'Большая часть времени — интересные задачи.' });
   if (complexityIndex !== null && complexityIndex >= 1.4 && interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'bad', title:'Риск выгорания', text:'Много сложного и неинтересного.' });
   if (complexityIndex !== null && complexityIndex <= 0.9 && interestIndex !== null && interestIndex <= 0.8) flags.push({ type:'warn', title:'Застой', text:'Лёгкие и неинтересные задачи.' });
   if (routineShare >= 0.5) flags.push({ type:'warn', title:'Много рутины', text:'Больше половины времени — регулярные процессы.' });
   if (base.daysCount.size <= 3 && base.totalMin >= 60) flags.push({ type:'warn', title:'Мало дней с записями', text:`Данные только за ${base.daysCount.size} дн.` });
+
   const typeStats = [...base.byType.entries()].map(([type, mins]) => {
     const iv = base.interestByType.get(type); const cv = base.complexityByType.get(type);
     return { type, mins, interestIdx: iv && iv.minutes ? iv.weighted / iv.minutes : null, complexIdx: cv && cv.minutes ? cv.weighted / cv.minutes : null };
   }).sort((a,b) => b.mins - a.mins);
+  
+  const tasksMap = new Map();
+  records.forEach(({ row }) => {
+    const mins = rowMinutes(row); if (mins <= 0) return;
+    const tKey = (row.task || '').trim() || '(без названия)';
+    if (!tasksMap.has(tKey)) tasksMap.set(tKey, { task: tKey, minutes: 0, interest: -1, complexity: -1, type: row.workType || 'Не указано' });
+    const t = tasksMap.get(tKey);
+    t.minutes += mins;
+    if (row.interest) t.interest = Math.max(t.interest, INTEREST.indexOf(row.interest));
+    if (row.complexity) t.complexity = Math.max(t.complexity, COMPLEXITY.indexOf(row.complexity));
+  });
+  const tasks = [...tasksMap.values()].sort((a,b) => b.minutes - a.minutes);
+  
   const topTasksByTime = tasks.slice(0, 5);
   const topLikedTasks = tasks.filter(t => t.interest === 2).sort((a,b) => b.minutes - a.minutes).slice(0, 5);
   const topDislikedTasks = tasks.filter(t => t.interest === 0).sort((a,b) => b.minutes - a.minutes).slice(0, 5);
   const avgPerActiveDay = base.daysCount.size ? base.totalMin / base.daysCount.size : 0;
-  const activeDayMins = perDay.filter(d => d.mins > 0).map(d => d.mins);
-  let stability = null;
-  if (activeDayMins.length >= 3){
-    const mean = activeDayMins.reduce((s,v) => s + v, 0) / activeDayMins.length;
-    const variance = activeDayMins.reduce((s,v) => s + (v - mean) ** 2, 0) / activeDayMins.length;
-    const std = Math.sqrt(variance);
-    stability = { mean, std, cv: mean ? std / mean : 0 };
-  }
-  const conclusion = buildConclusion(base);
-  return { email, base, conclusion, perDay, weeks, tasks, typeStats, flags, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, stability, interestIndex, complexityIndex, daysInMonth, monthY: y, monthM: m, records };
+  
+  return { 
+    email, base, conclusion, 
+    chartLabels, chartMins, chartInterest, chartComplex, chartTitle,
+    heatmapHtml, flags, typeStats, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, 
+    interestIndex, complexityIndex, records 
+  };
 }
 
 function buildPersonalityDeep(deep){
-  const { base, conclusion, interestIndex, complexityIndex, typeStats, records } = deep;
+  const { base, conclusion, interestIndex, complexityIndex } = deep;
   const riasecScores = { I: 0, S: 0, E: 0, C: 0, R: 0, A: 0 };
   base.byType.forEach((mins, type) => {
     if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
@@ -2101,7 +2223,6 @@ function buildPersonalityDeep(deep){
       if (eligibleCount >= 3 && (roleScoresArr[0].share - roleScoresArr[2].share) <= 0.04) {
           teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
       } else {
-          // Синхронизируем командную роль с доминирующим RIASEC-типом
           let bestRoleForRiasec = topRoleObj;
           if (topRiasec === 'I') {
               bestRoleForRiasec = roleScoresArr.find(r => r.name === 'Аналитик / Инноватор') || topRoleObj;
@@ -2122,8 +2243,8 @@ function buildPersonalityDeep(deep){
   
   let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
   let morningMin = 0, eveningMin = 0;
-  if (records) {
-      records.forEach(({ row }) => {
+  if (deep.records) {
+      deep.records.forEach(({ row }) => {
          if (row.start && row.complexity === 'Сложно') {
              const hour = parseInt(row.start.split(':')[0], 10);
              const mins = rowMinutes(row);
@@ -2188,12 +2309,12 @@ function openDeepAnalysis(email){
     if (!email) throw new Error('Не выбран пользователь');
 
     const deep = analyzeDeep(email);
-    if (!deep) throw new Error('Нет данных для анализа за выбранный месяц');
+    if (!deep) throw new Error('Нет данных для анализа за выбранный период');
 
     if (deepChart1) { deepChart1.destroy(); deepChart1 = null; }
     if (deepChart2) { deepChart2.destroy(); deepChart2 = null; }
 
-    const { base, perDay, flags } = deep;
+    const { base, flags } = deep;
     const avatar = getUserAvatarText(email);
     const displayName = getUserDisplayName(email);
     const personality = buildPersonalityDeep(deep); 
@@ -2201,24 +2322,24 @@ function openDeepAnalysis(email){
     const tmData = analyzeTimeManagement(deep);
     const timeMgmtHtml = buildTimeManagementHtml(tmData);
 
-    const m = MONTHS[viewDate.getMonth()].toLowerCase();
-    const y = viewDate.getFullYear();
-    deepSubtitle.textContent = `${displayName} · ${m} ${y}`;
+    let periodLabel = 'Весь период';
+    if (insightPeriod === 'month') periodLabel = MONTHS[viewDate.getMonth()].toLowerCase() + ' ' + viewDate.getFullYear();
+    else if (insightPeriod === 'day') periodLabel = `${insightDate.getDate()} ${MONTHS_GEN[insightDate.getMonth()]} ${insightDate.getFullYear()}`;
+    
+    deepSubtitle.textContent = `${displayName} · ${periodLabel}`;
 
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const firstDate = getFirstRecordDate(email);
-    const workingDaysFromStart = Math.max(1, countWorkingDays(firstDate, today));
-    let totalMinAllTime = 0;
-    const userKey = safeKey(email);
-    const userData = allData[userKey] || {};
-    Object.keys(userData).forEach(dateKey => {
-        let d = parseDateStr(dateKey);
-        if (d <= today) {
-            getRows(userData, dateKey).forEach(r => totalMinAllTime += rowMinutes(r));
-        }
-    });
-    const dayPct = Math.round((totalMinAllTime / (workingDaysFromStart * 480)) * 100);
+    let totalMinPeriod = base.totalMin;
+    let workingDaysForPct = 1;
+    if (insightPeriod === 'all') {
+      const firstDate = getFirstRecordDate(email);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      workingDaysForPct = Math.max(1, countWorkingDays(firstDate, today));
+    } else if (insightPeriod === 'month') {
+      const y = viewDate.getFullYear(), m = viewDate.getMonth();
+      workingDaysForPct = Math.max(1, countWorkingDays(new Date(y, m, 1), new Date(y, m + 1, 0)));
+    }
+    const dayPct = Math.round((totalMinPeriod / (workingDaysForPct * 480)) * 100);
 
     function buildGauge(title, pct) {
       const color = getGaugeColor(pct);
@@ -2240,7 +2361,7 @@ function openDeepAnalysis(email){
 
     const gaugesHtml = `
       <div class="workload-gauges">
-         ${buildGauge('День', dayPct)}
+         ${buildGauge('Загруженность', dayPct)}
       </div>
     `;
 
@@ -2267,15 +2388,6 @@ function openDeepAnalysis(email){
 ≥ 1.4 — Высокая (риск выгорания / профессионал-вызов)</div>
       </div>
     </div>`;
-
-    const maxDayMins = Math.max(1, ...perDay.map(d => d.mins));
-    const heatCells = perDay.map((d, i) => {
-      const day = i + 1;
-      const intensity = d.mins / maxDayMins;
-      const bg = d.mins === 0 ? '#f1f5f9' : `rgba(37,99,235,${0.15 + intensity * 0.75})`;
-      return `<div class="hm-day ${d.mins > 0 ? 'has-data' : ''}" style="background:${bg};" title="${day}: ${fmtHours(d.mins)}">${day}</div>`;
-    }).join('');
-    const heatHtml = `<div class="deep-section"><h4>Тепловая карта по дням</h4><div class="deep-heatmap">${heatCells}</div></div>`;
 
     const flagsHtml = flags.length ? `<div class="deep-section"><h4>Наблюдения и флаги</h4><div class="deep-flags">${flags.map(f => `<div class="deep-flag ${f.type}"><span class="ic">${f.type === 'ok' ? '✓' : f.type === 'warn' ? '⚠' : '✕'}</span><div><b>${esc(f.title)}</b>${esc(f.text)}</div></div>`).join('')}</div></div>` : '';
 
@@ -2340,17 +2452,22 @@ function openDeepAnalysis(email){
         </div>
       </div>`;
 
+    let chartsHtml = '';
+    if (insightPeriod !== 'day') {
+      chartsHtml = `<div class="deep-section"><h4>${deep.chartTitle}</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>`;
+    }
+
     deepBody.innerHTML = `
       <div class="deep-hero">
          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
             <div class="insight-avatar">${esc(avatar)}</div>
-            <div><h3>${esc(displayName)}</h3><small>Записи за ${m} ${y}</small></div>
+            <div><h3>${esc(displayName)}</h3><small>Период: ${periodLabel}</small></div>
          </div>
          ${gaugesHtml}
       </div>
       ${kpiHtml}
-      <div class="deep-section"><h4>Динамика по неделям</h4><div class="deep-two"><div class="deep-chart-wrap"><canvas id="deepChart1"></canvas></div><div class="deep-chart-wrap"><canvas id="deepChart2"></canvas></div></div></div>
-      ${heatHtml}
+      ${chartsHtml}
+      ${deep.heatmapHtml}
       ${flagsHtml}
       ${timeMgmtHtml}
       ${typesHtml}
@@ -2359,9 +2476,11 @@ function openDeepAnalysis(email){
       ${personalityHtml}
     `;
 
-    setTimeout(() => {
-        try { drawDeepCharts(deep); } catch(e) { console.error('Chart error', e); }
-    }, 100);
+    if (insightPeriod !== 'day') {
+      setTimeout(() => {
+          try { drawDeepCharts(deep); } catch(e) { console.error('Chart error', e); }
+      }, 100);
+    }
 
   } catch(err) {
     if (deepBody) {
@@ -2379,19 +2498,19 @@ function drawDeepCharts(deep){
   const c1 = document.getElementById('deepChart1');
   const c2 = document.getElementById('deepChart2');
   if (!c1 || !c2) return;
-  const weekLabels = ['Неделя 1','Неделя 2','Неделя 3','Неделя 4','Неделя 5'];
+
   deepChart1 = new Chart(c1.getContext('2d'), {
     type: 'bar',
-    data: { labels: weekLabels, datasets: [{ label: 'Часов', data: deep.weeks.map(w => round2(w.mins / 60)), backgroundColor: '#2563eb', borderRadius: 5 }] },
+    data: { labels: deep.chartLabels, datasets: [{ label: 'Часов', data: deep.chartMins, backgroundColor: '#2563eb', borderRadius: 5 }] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, title: { display: true, text: 'Динамика по неделям', font: { size: 12, weight: '600' }, color: '#334155' } },
+      plugins: { legend: { display: false }, title: { display: true, text: 'Объем работы', font: { size: 12, weight: '600' }, color: '#334155' } },
       scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { beginAtZero: true, ticks: { font: { size: 10 } } } } }
   });
   deepChart2 = new Chart(c2.getContext('2d'), {
     type: 'line',
-    data: { labels: weekLabels, datasets: [
-      { label: 'Интерес', data: deep.weeks.map(w => w.interest ? round2(w.interestW / w.interest) : null), borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.12)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 },
-      { label: 'Сложность', data: deep.weeks.map(w => w.complex ? round2(w.complexW / w.complex) : null), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.10)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 }
+    data: { labels: deep.chartLabels, datasets: [
+      { label: 'Интерес', data: deep.chartInterest, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.12)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 },
+      { label: 'Сложность', data: deep.chartComplex, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.10)', tension: .35, spanGaps: true, fill: true, borderWidth: 2, pointRadius: 4 }
     ] },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, font: { size: 10 } } }, title: { display: true, text: 'Интерес и сложность', font: { size: 12, weight: '600' }, color: '#334155' } },
