@@ -318,7 +318,7 @@
   .overlay.open{display:flex;}
   
   #overlay { 
-    padding: 2cm 4cm; 
+    padding: 0.5cm 4cm; 
     box-sizing: border-box; 
   }
   #overlay .modal { 
@@ -1925,12 +1925,16 @@ function buildConclusion(a){
   const dominantComplex  = complexOrdered.reduce((a,b) => b.mins > a.mins ? b : a, complexOrdered[0]);
   const interestIndex = (() => { const t = interestOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return interestOrdered.reduce((s, x) => s + x.mins * INTEREST.indexOf(x.label), 0) / t; })();
   const complexityIndex = (() => { const t = complexOrdered.reduce((s, x) => s + x.mins, 0); if (!t) return null; return complexOrdered.reduce((s, x) => s + x.mins * COMPLEXITY.indexOf(x.label), 0) / t; })();
+  
   const rankedByInterest = [...a.interestByType.entries()].map(([type, v]) => ({ type, minutes: v.minutes, idx: v.minutes ? v.weighted / v.minutes : 0 })).filter(x => x.minutes >= 30).sort((x,y) => y.idx - x.idx);
   const rankedByComplex  = [...a.complexityByType.entries()].map(([type, v]) => ({ type, minutes: v.minutes, idx: v.minutes ? v.weighted / v.minutes : 0 })).filter(x => x.minutes >= 30).sort((x,y) => y.idx - x.idx);
+  
   const mostLikedType  = rankedByInterest[0];
   const leastLikedType = rankedByInterest[rankedByInterest.length - 1];
-  const easiestType    = rankedByComplex[0];
-  const hardestType    = rankedByComplex[rankedByComplex.length - 1];
+  
+  // ИСПРАВЛЕНО: Самый легкий - это конец массива (наименьший индекс сложности), самый сложный - начало
+  const easiestType    = rankedByComplex[rankedByComplex.length - 1];
+  const hardestType    = rankedByComplex[0];
   
   const personality = guessPersonality({ interestIndex, complexityIndex, dominantInterest: dominantInterest.label, dominantComplex: dominantComplex.label, topType: topTypes[0] ? topTypes[0].name : null, byType: a.byType, total });
   
