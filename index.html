@@ -35,6 +35,7 @@
   .auth-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#334155;}
   .hint{font-size:12px;color:var(--muted);margin:0;line-height:1.5;}
   .auth-msg{font-size:13px;min-height:18px;color:var(--danger);line-height:1.4;}
+  .auth-msg:empty { display: none; }
   .auth-msg.ok{color:#16a34a;}
   .auth-msg.warn{color:#92400e;}
   .link{border:none;background:none;color:var(--accent);font-size:13px;cursor:pointer;padding:4px 0;font-family:inherit;text-align:left;}
@@ -104,10 +105,10 @@
     gap: 14px; 
     padding: 4px 2px 12px 2px; 
     width: 100%;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  .insights-grid::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+  .insights-grid::-webkit-scrollbar { display: none; }
   
   .insight-card{ 
     flex: 0 0 calc(33.333% - 10px); 
@@ -143,7 +144,6 @@
   .insight-user b{font-size:13px;font-weight:700;word-break:break-all;}
   .insight-user small{display:block;font-size:11px;color:var(--muted);margin-top:1px;}
   
-  /* Мини-спидометр в карточке */
   .card-gauge-wrap {
     position: absolute; right: 0; top: 0;
     display: flex; flex-direction: column; align-items: center;
@@ -189,7 +189,6 @@
     border-width: 6px; border-style: solid; border-color: #1e293b transparent transparent transparent;
   }
 
-  /* Спидометры загруженности */
   .workload-gauges {
     display: flex;
     gap: 16px;
@@ -236,7 +235,6 @@
     color: var(--text);
   }
   
-  /* Подсказка для спидометра (появляется снизу) */
   .gauge-item .kpi-tooltip {
     visibility: hidden; opacity: 0; position: absolute; top: 100%; margin-top: 8px;
     left: 50%; transform: translateX(-50%);
@@ -250,7 +248,6 @@
     border-width: 6px; border-style: solid; border-color: transparent transparent #1e293b transparent;
   }
   
-  /* Выравнивание подсказки для последнего спидометра по правому краю */
   .gauge-item:last-child .kpi-tooltip {
     left: auto; right: 0; transform: none;
   }
@@ -316,8 +313,27 @@
   .profile-form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:#334155;}
   .profile-form-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:4px;align-items:center;}
   .pw-note{font-size:12px;color:var(--muted);margin:0;line-height:1.5;padding:10px 12px;background:#eff6ff;border-radius:8px;border:1px solid #dbeafe;}
+  
   .overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;padding:20px;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
   .overlay.open{display:flex;}
+  
+  #overlay { 
+    padding: 2cm 4cm; 
+    box-sizing: border-box; 
+  }
+  #overlay .modal { 
+    width: 100%; 
+    max-width: 100%; 
+    height: 100%; 
+    max-height: 100%; 
+    border-radius: 12px; 
+  }
+  
+  @media (max-width:720px){
+    #overlay { padding: 0; }
+    #overlay .modal { border-radius: 0; }
+  }
+  
   .modal{background:#fff;border-radius:18px;width:min(1240px,100%);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden;animation:pop .18s ease-out;}
   @keyframes pop{from{transform:scale(.97);opacity:.6;}to{transform:scale(1);opacity:1;}}
   .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid var(--border);background:#f8fafc;}
@@ -327,13 +343,14 @@
   .close:hover{background:#e2e8f0;color:var(--text);}
   .modal-body{padding:0 22px;overflow:auto;flex:1;}
   .table-wrap{overflow-x:auto;padding:14px 0 4px;}
-  table{border-collapse:collapse;width:100%;min-width:980px;}
+  table{border-collapse:collapse;width:100%;min-width:1200px;}
   thead th{text-align:left;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:8px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
   tbody td{padding:6px 6px;vertical-align:middle;border-bottom:1px solid #f1f5f9;}
   tbody tr:hover{background:#f8fafc;}
   tbody tr:last-child td{border-bottom:none;}
-  input,select{width:100%;font-family:inherit;font-size:13px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 9px;transition:.15s;}
-  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+  input,select,textarea{width:100%;font-family:inherit;font-size:13px;color:var(--text);background:#fff;border:1px solid var(--border);border-radius:8px;padding:7px 9px;transition:.15s;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light);}
+  textarea { resize: none; overflow: hidden; min-height: 36px; box-sizing: border-box; line-height: 1.4; }
   input[readonly]{background:#f8fafc;color:#475569;font-weight:600;cursor:default;}
   select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer;}
   .del{border:none;background:transparent;color:#cbd5e1;cursor:pointer;font-size:15px;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:.15s;}
@@ -366,6 +383,47 @@
   .ct-task{color:var(--text);word-break:break-word;}
   .ct-user{display:inline-block;margin-left:6px;font-size:11px;color:#1d4ed8;background:#eff6ff;padding:1px 6px;border-radius:5px;font-weight:600;}
   .ct-time{text-align:right;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
+
+  /* Отсутствия: отпуск / больничный */
+  .cell.absent { background:#fef3c7; border-color:#fcd34d; }
+  .cell.absent .daynum { color:#92400e; font-weight:700; }
+  .cell.absent.sick { background:#fee2e2; border-color:#fca5a5; }
+  .cell.absent.sick .daynum { color:#991b1b; }
+  .absence-badge { margin-top:auto; align-self:flex-start; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; }
+  .absence-badge.vacation { background:#fde68a; color:#92400e; }
+  .absence-badge.sick { background:#fecaca; color:#991b1b; }
+  .day-absence-bar { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 14px; border-radius:10px; font-size:13px; margin:12px 0; border:1px solid; flex-wrap:wrap; }
+  .day-absence-bar.vacation { background:#fef3c7; border-color:#fcd34d; color:#92400e; }
+  .day-absence-bar.sick { background:#fee2e2; border-color:#fca5a5; color:#991b1b; }
+  .day-absence-bar.info { background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
+  .day-absence-bar .msg { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .day-absence-bar .actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* Автодополнение для задач */
+  .task-autocomplete-list {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 2000;
+    max-height: 200px;
+    overflow-y: auto;
+    min-width: 250px;
+  }
+  .task-autocomplete-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.1s;
+  }
+  .task-autocomplete-item:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
   @media (max-width:720px){
     .app{padding:16px 10px 40px;} .cell{min-height:62px;padding:6px;border-radius:9px;} .daynum{font-size:12px;} .badge{font-size:10px;padding:1px 5px;} .weekdays div{font-size:10px;} .overlay{padding:0;} .modal{max-height:100vh;height:100%;border-radius:0;width:100%;} .brand h1{font-size:16px;} .brand p{display:none;} .auth-card{padding:22px;} .user-chip .meta b{max-width:130px;} .chart-wrap{height:300px;} .insight-row .k{flex:0 0 110px;font-size:12px;} .deep-two{grid-template-columns:1fr;}
     .chart-task-row{grid-template-columns:80px 1fr 65px;font-size:12px;}
@@ -435,6 +493,7 @@
       <div class="month-title" id="monthTitle"></div>
       <button class="btn icon" id="nextBtn" title="Следующий месяц">›</button>
       <button class="btn ghost" id="todayBtn">Сегодня</button>
+      <button class="btn ghost" id="absenceBtn" title="Отметить отпуск/больничный">🌴 Отсутствие</button>
     </div>
     <div class="weekdays"><div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div></div>
     <div class="calendar" id="calendar"></div>
@@ -498,18 +557,19 @@
       <button class="close" id="closeBtn" title="Закрыть">✕</button>
     </div>
     <div class="modal-body">
+      <div id="dayAbsenceBar"></div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width:16%">Что делал</th>
-              <th style="width:7%">Начало</th>
-              <th style="width:7%">Конец</th>
-              <th style="width:8%">Затрачено</th>
+              <th style="width:25%">Что делал</th>
+              <th style="width:8%">Начало</th>
+              <th style="width:8%">Конец</th>
+              <th style="width:9%">Затрачено</th>
               <th style="width:11%">Уровень сложности</th>
               <th style="width:11%">Уровень интереса</th>
-              <th style="width:15%">Вид работ</th>
-              <th>Комментарий</th>
+              <th style="width:12%">Вид работ</th>
+              <th style="width:auto">Комментарий</th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -617,7 +677,7 @@
           <label>Должность<input type="text" id="profPosition" required placeholder="Менеджер"></label>
           <label>Отдел (РЦ)<input type="text" id="profDepartment" required placeholder="Склад №1"></label>
           <div class="auth-msg" id="profileDataMsg"></div>
-          <div class="profile-form-actions">
+          <div class="profile-form-actions" style="justify-content: flex-end;">
             <button type="submit" class="btn primary">Сохранить данные</button>
           </div>
         </form>
@@ -636,18 +696,38 @@
           </div>
         </form>
       </div>
-      
-      <!-- Блок импорта данных -->
-      <div class="profile-section" style="border-top: 1px dashed var(--border); padding-top: 18px; margin-top: 18px;">
-        <h3>Импорт данных</h3>
-        <p class="hint" style="margin-bottom: 10px;">Загрузите файл Excel (.xlsx, .xls) или CSV. Ожидаемые столбцы: <b>Дата, Начало, Конец, Комментарии, Вид работ</b>.</p>
-        <div class="profile-form-actions">
-          <button type="button" class="btn primary" id="importDataBtn">Выбрать файл для импорта</button>
-          <input type="file" id="importFileInput" accept=".csv, .xlsx, .xls" class="hidden">
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="absenceOverlay">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <div><h2 id="absenceTitle">Отметить отсутствие</h2><p id="absenceSub">Отпуск или больничный</p></div>
+      <button class="close" id="absenceClose" title="Закрыть">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <form id="absenceForm" class="profile-form" autocomplete="off">
+        <label>Тип отсутствия
+          <select id="absenceType">
+            <option value="vacation">Отпуск</option>
+            <option value="sick">Больничный</option>
+          </select>
+        </label>
+        <label>С даты<input type="date" id="absenceFrom" required></label>
+        <label>По дату<input type="date" id="absenceTo" required></label>
+        <label>Примечание (необязательно)<input type="text" id="absenceNote" placeholder="Например: ежегодный оплачиваемый"></label>
+        <div class="auth-msg" id="absenceMsg"></div>
+        
+        <div style="margin-top: 8px;">
+          <button type="button" class="link" id="absenceDelete" style="color: var(--danger); font-size: 12px;">Убрать отсутствия в периоде</button>
         </div>
-        <div class="auth-msg" id="importMsg" style="margin-top: 10px;"></div>
-      </div>
-      
+        
+        <div class="profile-form-actions" style="justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" class="btn ghost" id="absenceCancelBtn">Отменить</button>
+          <button type="submit" class="btn primary">Сохранить</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -673,10 +753,11 @@ if (FIREBASE_CONFIG.databaseURL) {
 const EMAIL_CONFIG = { enabled: false };
 function isEmailConfigured(){ return false; }
 
-const ADMIN_EMAIL = 'golovnya_ap@resanta.ru';
-const USERS_KEY   = 'frd_users_v1';
-const DATA_KEY    = 'frd_data_v2';
-const SESSION_KEY = 'frd_session_v1';
+const ADMIN_EMAIL  = 'golovnya_ap@resanta.ru';
+const USERS_KEY    = 'frd_users_v1';
+const DATA_KEY     = 'frd_data_v2';
+const SESSION_KEY  = 'frd_session_v1';
+const ABSENCES_KEY = 'frd_absences_v1';
 
 /* =============================================================
    СПРАВОЧНИКИ И КАЛЕНДАРЬ
@@ -734,12 +815,14 @@ const deepSubtitle      = document.getElementById('deepSubtitle');
 const monthInsightsGrid = document.getElementById('monthInsightsGrid');
 const dayInsightsGrid   = document.getElementById('dayInsightsGrid');
 const chartTasksOverlay = document.getElementById('chartTasksOverlay');
+const absenceOverlay    = document.getElementById('absenceOverlay');
 
 /* =============================================================
    СОСТОЯНИЕ
    ============================================================= */
 let users        = db ? {} : safeParse(localStorage.getItem(USERS_KEY), {});
 let allData      = db ? {} : safeParse(localStorage.getItem(DATA_KEY), {});
+let allAbsences  = db ? {} : safeParse(localStorage.getItem(ABSENCES_KEY), {});
 let sessionEmail = localStorage.getItem(SESSION_KEY) || null;
 let activeEmail  = sessionEmail;
 let viewDate     = new Date(); viewDate.setDate(1);
@@ -761,6 +844,9 @@ let chartTasksCurrent = null;
 let insightPeriod = 'all';
 let insightDate = new Date();
 
+// Список уникальных задач для автодополнения
+let allUserTasks = [];
+
 /* =============================================================
    УТИЛИТЫ
    ============================================================= */
@@ -780,7 +866,7 @@ function parseDateStr(str) {
   return new Date(y, m - 1, d);
 }
 
-function countWorkingDays(start, end) {
+function countWorkingDays(start, end, absencesMap) {
   let count = 0;
   let current = new Date(start);
   current.setHours(0,0,0,0);
@@ -792,7 +878,8 @@ function countWorkingDays(start, end) {
     const year = current.getFullYear();
     const isWeekend = (day === 0 || day === 6);
     const isHoliday = (HOLIDAYS[year] || []).includes(dateStr);
-    if (!isWeekend && !isHoliday) count++;
+    const isAbsent  = absencesMap && absencesMap[dateStr];
+    if (!isWeekend && !isHoliday && !isAbsent) count++;
     current.setDate(current.getDate() + 1);
   }
   return count;
@@ -821,6 +908,69 @@ function getRows(bucket, key) {
   if (!bucket || !bucket[key]) return [];
   const val = bucket[key];
   return Array.isArray(val) ? val : Object.values(val);
+}
+
+/* =============================================================
+   ОТСУТСТВИЯ (отпуск / больничный)
+   ============================================================= */
+function getAbsences(email) {
+  if (!email) return {};
+  return allAbsences[safeKey(email)] || {};
+}
+function isDayAbsent(email, dateKey) {
+  return getAbsences(email)[dateKey] || null;
+}
+function hasRecordsInRange(email, fromKey, toKey) {
+  const k = safeKey(email);
+  const bucket = allData[k] || {};
+  for (const dk of Object.keys(bucket)) {
+    if (dk >= fromKey && dk <= toKey && getRows(bucket, dk).length) return true;
+  }
+  return false;
+}
+async function setAbsenceDay(email, dateKey, type, note) {
+  const k = safeKey(email);
+  if (!allAbsences[k]) allAbsences[k] = {};
+  allAbsences[k][dateKey] = { type, note: note || '', createdAt: Date.now() };
+  if (db) await db.ref('absences/' + k + '/' + dateKey).set(allAbsences[k][dateKey]);
+  else localStorage.setItem(ABSENCES_KEY, JSON.stringify(allAbsences));
+}
+async function removeAbsenceDay(email, dateKey) {
+  const k = safeKey(email);
+  if (!allAbsences[k] || !allAbsences[k][dateKey]) return;
+  delete allAbsences[k][dateKey];
+  if (db) await db.ref('absences/' + k + '/' + dateKey).remove();
+  else localStorage.setItem(ABSENCES_KEY, JSON.stringify(allAbsences));
+}
+async function setAbsencePeriod(email, fromKey, toKey, type, note) {
+  const k = safeKey(email);
+  if (!allAbsences[k]) allAbsences[k] = {};
+  const updates = {};
+  const cur = parseDateStr(fromKey);
+  const end = parseDateStr(toKey);
+  while (cur <= end) {
+    const dk = keyOf(cur.getFullYear(), cur.getMonth(), cur.getDate());
+    allAbsences[k][dk] = { type, note: note || '', createdAt: Date.now() };
+    updates[dk] = allAbsences[k][dk];
+    cur.setDate(cur.getDate() + 1);
+  }
+  if (db) await db.ref('absences/' + k).update(updates);
+  else localStorage.setItem(ABSENCES_KEY, JSON.stringify(allAbsences));
+}
+async function removeAbsencePeriod(email, fromKey, toKey) {
+  const k = safeKey(email);
+  if (!allAbsences[k]) return;
+  const cur = parseDateStr(fromKey);
+  const end = parseDateStr(toKey);
+  const updates = {};
+  while (cur <= end) {
+    const dk = keyOf(cur.getFullYear(), cur.getMonth(), cur.getDate());
+    if (allAbsences[k][dk]) { delete allAbsences[k][dk]; updates[dk] = null; }
+    cur.setDate(cur.getDate() + 1);
+  }
+  if (Object.keys(updates).length === 0) return;
+  if (db) await db.ref('absences/' + k).update(updates);
+  else localStorage.setItem(ABSENCES_KEY, JSON.stringify(allAbsences));
 }
 
 function getUserDisplayName(email) {
@@ -901,7 +1051,6 @@ function getTop3Tasks(map) {
     .join('<br>');
 }
 
-// Функция получения диапазона дат для карточек и углубленного анализа
 function getInsightRange() {
   if (insightPeriod === 'month') {
     const y = viewDate.getFullYear(), m = viewDate.getMonth();
@@ -1126,6 +1275,7 @@ function renderCalendar(){
   const now = new Date();
   const todayKey = keyOf(now.getFullYear(), now.getMonth(), now.getDate());
   const store = getBucket();
+  const userAbsences = getAbsences(activeEmail);
   calendarEl.innerHTML = '';
   for (let i = 0; i < startGap; i++){ const e = document.createElement('div'); e.className = 'cell empty'; calendarEl.appendChild(e); }
   for (let d = 1; d <= daysCount; d++){
@@ -1137,7 +1287,15 @@ function renderCalendar(){
     cell.className = 'cell';
     if (dow >= 5) cell.classList.add('weekend');
     if (key === todayKey) cell.classList.add('today');
-    cell.innerHTML = `<div class="daynum">${d}</div>` + (rows.length ? `<div class="dot"></div>` : '') + (totalMin > 0 ? `<div class="badge">${fmtHours(totalMin)}</div>` : '');
+    const absence = userAbsences[key];
+    if (absence){
+      cell.classList.add('absent');
+      if (absence.type === 'sick') cell.classList.add('sick');
+      const label = absence.type === 'sick' ? 'Больничный' : 'Отпуск';
+      cell.innerHTML = `<div class="daynum">${d}</div><div class="absence-badge ${absence.type}">${label}</div>`;
+    } else {
+      cell.innerHTML = `<div class="daynum">${d}</div>` + (rows.length ? `<div class="dot"></div>` : '') + (totalMin > 0 ? `<div class="badge">${fmtHours(totalMin)}</div>` : '');
+    }
     cell.addEventListener('click', () => openDay(key));
     calendarEl.appendChild(cell);
   }
@@ -1148,6 +1306,7 @@ function renderCalendar(){
    ============================================================= */
 function openDay(key){
   if (!activeEmail) return;
+  collectUserTasks();
   const store = getBucket();
   currentKey = key; 
   currentRows = getRows(store, key);
@@ -1156,10 +1315,21 @@ function openDay(key){
   const dt = new Date(y, m - 1, d);
   modalTitle.textContent = `${d} ${MONTHS_GEN[m-1]} ${y}`;
   modalSub.textContent = WEEKDAYS[(dt.getDay() + 6) % 7];
-  renderRows();
   overlay.classList.add('open');
-  setTimeout(() => { renderDayChart(); renderDayInsights(); }, 30);
+  renderDayAbsenceBar();
+  renderRows();
+  
+  // Авто-прокрутка к кнопке добавления строки
+  setTimeout(() => { 
+    renderDayChart(); 
+    renderDayInsights(); 
+    const addBtn = document.getElementById('addRowBtn');
+    if (addBtn) {
+      addBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50);
 }
+
 function closeDay(){
   saveAllData();
   overlay.classList.remove('open');
@@ -1170,24 +1340,72 @@ function selectHtml(field, options, value){
   const opts = ['<option value="">—</option>'].concat(options.map(o => `<option value="${esc(o)}"${o === value ? ' selected' : ''}>${esc(o)}</option>`)).join('');
   return `<select data-field="${field}">${opts}</select>`;
 }
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function renderDayAbsenceBar(){
+  const bar = document.getElementById('dayAbsenceBar');
+  if (!bar) return;
+  const absence = isDayAbsent(activeEmail, currentKey);
+  if (absence){
+    const isSick = absence.type === 'sick';
+    const label = isSick ? 'Больничный' : 'Отпуск';
+    bar.className = 'day-absence-bar ' + (isSick ? 'sick' : 'vacation');
+    bar.innerHTML = `<div class="msg"><b>${label}</b>${absence.note ? ' · ' + esc(absence.note) : ''}<span style="opacity:.8;font-size:12px;">— день исключён из рабочих, записи не учитываются в статистике.</span></div><div class="actions"><button type="button" class="btn ghost" id="removeDayAbsenceBtn" style="padding:5px 12px;font-size:12px;">Убрать</button></div>`;
+    document.getElementById('removeDayAbsenceBtn').onclick = async () => {
+      await removeAbsenceDay(activeEmail, currentKey);
+      renderDayAbsenceBar();
+      renderCalendar();
+      renderMonthInsights();
+      renderDayInsights();
+    };
+  } else {
+    bar.className = 'day-absence-bar info';
+    bar.innerHTML = `<div class="msg"><span>Отметить этот день как отсутствие:</span></div><div class="actions"><button type="button" class="btn ghost" id="markDayVacationBtn" style="padding:5px 12px;font-size:12px;">Отпуск</button><button type="button" class="btn ghost" id="markDaySickBtn" style="padding:5px 12px;font-size:12px;">Больничный</button></div>`;
+    document.getElementById('markDayVacationBtn').onclick = () => quickMarkDay('vacation');
+    document.getElementById('markDaySickBtn').onclick = () => quickMarkDay('sick');
+  }
+}
+async function quickMarkDay(type){
+  if (!currentKey || !activeEmail) return;
+  const k = safeKey(activeEmail);
+  if (getRows(allData[k] || {}, currentKey).length) {
+    if (!confirm('На этот день уже есть записи. Отметить как отсутствие? Записи сохранятся, но не будут учитываться в статистике.')) return;
+  }
+  await setAbsenceDay(activeEmail, currentKey, type, '');
+  renderDayAbsenceBar();
+  renderCalendar();
+  renderMonthInsights();
+  renderDayInsights();
+}
+
 function rowHtml(r, i){
   const mins = rowMinutes(r);
   const spentVal = formatDuration(mins);
   return `<tr data-index="${i}">
-    <td><input type="text" data-field="task" value="${esc(r.task)}" placeholder="Описание задачи"></td>
+    <td><textarea data-field="task" rows="1" placeholder="Описание задачи">${esc(r.task)}</textarea></td>
     <td><input type="time" data-field="start" value="${esc(r.start || '')}"></td>
     <td><input type="time" data-field="end" value="${esc(r.end || '')}"></td>
     <td><input type="text" data-field="spent" value="${spentVal}" readonly placeholder="0:00"></td>
     <td>${selectHtml('complexity', COMPLEXITY, r.complexity)}</td>
     <td>${selectHtml('interest',   INTEREST,   r.interest)}</td>
     <td>${selectHtml('workType',   WORKTYPES,  r.workType)}</td>
-    <td><input type="text" data-field="comment" value="${esc(r.comment)}" placeholder="Комментарий"></td>
+    <td><textarea data-field="comment" rows="1" placeholder="Комментарий">${esc(r.comment)}</textarea></td>
     <td><button type="button" class="del" data-del="${i}" title="Удалить">✕</button></td>
   </tr>`;
 }
+
 function renderRows(){
   tbody.innerHTML = currentRows.map(rowHtml).join('');
   emptyMsg.style.display = currentRows.length ? 'none' : 'block';
+  tbody.querySelectorAll('textarea').forEach(autoResize);
+  
+  // Привязка автодополнения к полям ввода задач
+  tbody.querySelectorAll('textarea[data-field="task"]').forEach(attachAutocomplete);
+
   updateTotals(); renderDayChart(); renderDayInsights();
 }
 function updateTotals(){
@@ -1197,10 +1415,78 @@ function updateTotals(){
 }
 
 /* =============================================================
+   АВТОДОПОЛНЕНИЕ ЗАДАЧ
+   ============================================================= */
+function collectUserTasks() {
+  allUserTasks = [];
+  if (!activeEmail) return;
+  const key = safeKey(activeEmail);
+  const bucket = allData[key] || {};
+  const unique = new Set();
+  Object.keys(bucket).forEach(dateKey => {
+    getRows(bucket, dateKey).forEach(r => {
+      if (r.task && r.task.trim()) unique.add(r.task.trim());
+    });
+  });
+  allUserTasks = [...unique];
+}
+
+function attachAutocomplete(textarea) {
+  let dropdown = document.getElementById('task-autocomplete-dropdown');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = 'task-autocomplete-dropdown';
+    dropdown.className = 'task-autocomplete-list';
+    dropdown.style.display = 'none';
+    document.body.appendChild(dropdown);
+  }
+
+  textarea.addEventListener('input', function() {
+    const val = this.value.trim().toLowerCase();
+    if (!val) { dropdown.style.display = 'none'; return; }
+    
+    // Ищем совпадения, исключая точное совпадение с введенным текстом (чтобы не дублировать)
+    const matches = allUserTasks
+      .filter(t => t.toLowerCase().includes(val) && t.toLowerCase() !== val)
+      .slice(0, 15);
+      
+    if (matches.length === 0) { dropdown.style.display = 'none'; return; }
+    
+    dropdown.innerHTML = matches.map(t => `<div class="task-autocomplete-item">${esc(t)}</div>`).join('');
+    const rect = this.getBoundingClientRect();
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.top = (rect.bottom + 4) + 'px';
+    dropdown.style.width = Math.max(rect.width, 250) + 'px';
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('.task-autocomplete-item').forEach((item, idx) => {
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Предотвращаем потерю фокуса до клика
+        textarea.value = matches[idx];
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        dropdown.style.display = 'none';
+      });
+    });
+  });
+
+  textarea.addEventListener('blur', function() {
+    setTimeout(() => { dropdown.style.display = 'none'; }, 150);
+  });
+  
+  textarea.addEventListener('focus', function() {
+    if (this.value) {
+       this.dispatchEvent(new Event('input'));
+    }
+  });
+}
+
+/* =============================================================
    РЕДАКТИРОВАНИЕ
    ============================================================= */
 function handleEdit(e){
   const el = e.target;
+  if (el.tagName === 'TEXTAREA') autoResize(el);
+  
   if (!el.dataset || !el.dataset.field) return;
   const tr = el.closest('tr'); if (!tr) return;
   const i = Number(tr.dataset.index); if (!currentRows[i]) return;
@@ -1373,8 +1659,10 @@ function collectStatsRecords(){
   }
   const records = [];
   sources.forEach(({ email, bucket }) => {
+    const uAbs = getAbsences(email);
     Object.keys(bucket).forEach(k => {
       if (k < fromKey || k > toKey) return;
+      if (uAbs[k]) return;
       getRows(bucket, k).forEach(r => records.push({ email, date: k, row: r }));
     });
   });
@@ -1499,7 +1787,7 @@ function collectRecordsForUser(email, fromKey, toKey){
   return out;
 }
 
-function analyzeRecords(records){
+function analyzeRecords(records, absencesMap){
   const result = { 
     totalMin: 0, totalRows: 0, daysCount: new Set(), 
     byType: new Map(), byInterest: new Map(), byComplexity: new Map(), 
@@ -1511,6 +1799,7 @@ function analyzeRecords(records){
     topTasks: new Map()
   };
   records.forEach(({ date, row }) => {
+    if (absencesMap && absencesMap[date]) return;
     const mins = rowMinutes(row); if (mins <= 0) return;
     result.totalMin += mins; result.totalRows++; result.daysCount.add(date);
     const type = row.workType || 'Не указано';
@@ -1546,6 +1835,74 @@ function analyzeRecords(records){
   return result;
 }
 
+function calculateRoleAndType(byType, total, interestIndex, complexityIndex) {
+  if (!total || total <= 0) return null;
+
+  const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
+  byType.forEach((mins, type) => {
+    if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
+    else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
+    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки', 'Постановка и контроль задач'].includes(type)) riasecScores.E += mins;
+    else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами'].includes(type)) riasecScores.C += mins;
+  });
+  let topRiasec = 'I';
+  let maxScore = -1;
+  for (const [key, score] of Object.entries(riasecScores)) {
+    if (score > maxScore) { maxScore = score; topRiasec = key; }
+  }
+
+  const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
+  let scoresArr = [
+    { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), text: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
+    { name: 'Наставник / Тренер', share: shareOf(['Обучение', 'Обучение персонала']), text: 'Много времени уделяет обучению коллег и передаче знаний.' },
+    { name: 'Кризис-менеджер / Спасатель', share: shareOf(['HD и доп. отгрузки']), text: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' },
+    { name: 'Аудитор / Хранитель регламентов', share: shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']), text: 'Отвечает за порядок, регламенты, безопасность и документооборот.' },
+    { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), text: 'Связующее звено команды, решает вопросы через общение.' },
+    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами']), text: 'Держит в порядке процессы, документы и рутину.' },
+    { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), text: 'Управляет командой, ставит цели и контролирует их исполнение.' }
+  ];
+  scoresArr.sort((a, b) => b.share - a.share);
+
+  let topRole = 'Универсал';
+  let roleDesc = 'Способен закрывать разные участки работы.';
+  const top = scoresArr[0];
+  const eligibleCount = scoresArr.filter(s => s.share >= 0.15).length;
+
+  if (top.share >= 0.15) {
+      if (eligibleCount >= 3 && (scoresArr[0].share - scoresArr[2].share) <= 0.04) {
+          topRole = 'Универсал';
+          roleDesc = 'Способен закрывать разные участки работы.';
+      } else {
+          let bestRoleForRiasec = top;
+          if (topRiasec === 'I') {
+              bestRoleForRiasec = scoresArr.find(r => r.name === 'Аналитик / Инноватор') || top;
+          } else if (topRiasec === 'S') {
+              const sRoles = scoresArr.filter(r => r.name === 'Наставник / Тренер' || r.name === 'Коммуникатор / Дипломат');
+              sRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = sRoles[0] || top;
+          } else if (topRiasec === 'E') {
+              const eRoles = scoresArr.filter(r => r.name === 'Кризис-менеджер / Спасатель' || r.name === 'Аудитор / Хранитель регламентов' || r.name === 'Руководитель');
+              eRoles.sort((a,b) => b.share - a.share);
+              bestRoleForRiasec = eRoles[0] || top;
+          } else if (topRiasec === 'C') {
+              bestRoleForRiasec = scoresArr.find(r => r.name === 'Реализатор / Организатор') || top;
+          }
+          topRole = bestRoleForRiasec.name;
+          roleDesc = bestRoleForRiasec.text;
+      }
+  }
+
+  const riasecMap = {
+    I: { name: 'Исследователь (Investigative)', desc: 'Склонен к анализу, решению сложных задач и оптимизации. Любит работать с данными и искать скрытые закономерности.' },
+    S: { name: 'Социальный (Social)', desc: 'Ориентирован на людей и коммуникацию. Отлично чувствует себя в роли помощника, наставника или координатора.' },
+    E: { name: 'Предприимчивый (Enterprising)', desc: 'Нацелен на результат, любит влиять на процессы, вести переговоры и брать на себя ответственность за бизнес-показатели.' },
+    C: { name: 'Конвенциональный (Conventional)', desc: 'Ценит порядок, стабильность и четкие правила. Отлично справляется с рутиной, документооборотом и поддержанием процессов.' }
+  };
+  const riasecResult = riasecMap[topRiasec] || { name: 'Смешанный тип', desc: 'Профиль задач сбалансирован.' };
+
+  return { topRole, roleDesc, riasecResult, topRiasec };
+}
+
 function buildConclusion(a){
   if (a.totalMin <= 0) return { empty: true, text: 'Нет занесённых данных.' };
   const total = a.totalMin;
@@ -1574,7 +1931,9 @@ function buildConclusion(a){
   const leastLikedType = rankedByInterest[rankedByInterest.length - 1];
   const easiestType    = rankedByComplex[0];
   const hardestType    = rankedByComplex[rankedByComplex.length - 1];
+  
   const personality = guessPersonality({ interestIndex, complexityIndex, dominantInterest: dominantInterest.label, dominantComplex: dominantComplex.label, topType: topTypes[0] ? topTypes[0].name : null, byType: a.byType, total });
+  
   return { 
     empty: false, totalMin: total, totalRows: a.totalRows, daysCount: a.daysCount.size, 
     topTypes, interestOrdered, complexOrdered, dominantInterest, dominantComplex, 
@@ -1585,61 +1944,9 @@ function buildConclusion(a){
 
 function guessPersonality({ interestIndex, complexityIndex, dominantInterest, dominantComplex, topType, byType, total }){
   if (!topType) return { title: 'Недостаточно данных', text: 'Мало записей.' };
-  
-  const riasecScores = { I: 0, S: 0, E: 0, C: 0 };
-  byType.forEach((mins, type) => {
-    if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
-    else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
-    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки', 'Постановка и контроль задач'].includes(type)) riasecScores.E += mins;
-    else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами'].includes(type)) riasecScores.C += mins;
-  });
-  let topRiasec = 'I';
-  let maxScore = -1;
-  for (const [key, score] of Object.entries(riasecScores)) {
-    if (score > maxScore) { maxScore = score; topRiasec = key; }
-  }
-
-  const shareOf = (arr) => arr.reduce((s, t) => s + (byType.get(t) || 0), 0) / total;
-  let scoresArr = [
-    { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), text: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
-    { name: 'Наставник / Тренер', share: shareOf(['Обучение', 'Обучение персонала']), text: 'Много времени уделяет обучению коллег и передаче знаний.' },
-    { name: 'Кризис-менеджер / Спасатель', share: shareOf(['HD и доп. отгрузки']), text: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' },
-    { name: 'Аудитор / Хранитель регламентов', share: shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']), text: 'Отвечает за порядок, регламенты, безопасность и документооборот.' },
-    { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), text: 'Связующее звено команды, решает вопросы через общение.' },
-    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами']), text: 'Держит в порядке процессы, документы и рутину.' },
-    { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), text: 'Управляет командой, ставит цели и контролирует их исполнение.' }
-  ];
-  scoresArr.sort((a, b) => b.share - a.share);
-  
-  let topRole = 'Универсал';
-  let text = 'Способен закрывать разные участки работы.';
-  const top = scoresArr[0];
-  const eligibleCount = scoresArr.filter(s => s.share >= 0.15).length;
-  
-  if (top.share >= 0.15) {
-      if (eligibleCount >= 3 && (scoresArr[0].share - scoresArr[2].share) <= 0.04) {
-          topRole = 'Универсал';
-          text = 'Способен закрывать разные участки работы.';
-      } else {
-          let bestRoleForRiasec = top;
-          if (topRiasec === 'I') {
-              bestRoleForRiasec = scoresArr.find(r => r.name === 'Аналитик / Инноватор') || top;
-          } else if (topRiasec === 'S') {
-              const sRoles = scoresArr.filter(r => r.name === 'Наставник / Тренер' || r.name === 'Коммуникатор / Дипломат');
-              sRoles.sort((a,b) => b.share - a.share);
-              bestRoleForRiasec = sRoles[0] || top;
-          } else if (topRiasec === 'E') {
-              const eRoles = scoresArr.filter(r => r.name === 'Кризис-менеджер / Спасатель' || r.name === 'Аудитор / Хранитель регламентов' || r.name === 'Руководитель');
-              eRoles.sort((a,b) => b.share - a.share);
-              bestRoleForRiasec = eRoles[0] || top;
-          } else if (topRiasec === 'C') {
-              bestRoleForRiasec = scoresArr.find(r => r.name === 'Реализатор / Организатор') || top;
-          }
-          topRole = bestRoleForRiasec.name;
-          text = bestRoleForRiasec.text;
-      }
-  }
-  return { title: topRole, text };
+  const res = calculateRoleAndType(byType, total, interestIndex, complexityIndex);
+  if (!res) return { title: 'Недостаточно данных', text: 'Мало записей.' };
+  return { title: res.topRole, text: res.roleDesc };
 }
 
 /* =============================================================
@@ -1720,7 +2027,8 @@ function renderMonthInsights(){
     if (employeeFilter !== 'all' && email !== employeeFilter) return;
     const records = collectRecordsForUser(email, range.first, range.last);
     if (!records.length) return;
-    const conclusion = buildConclusion(analyzeRecords(records));
+    const userAbsences = getAbsences(email);
+    const conclusion = buildConclusion(analyzeRecords(records, userAbsences));
     if (conclusion.empty) return;
     
     let workingDays = 1;
@@ -1728,11 +2036,11 @@ function renderMonthInsights(){
       const firstDate = getFirstRecordDate(email);
       const today = new Date();
       today.setHours(0,0,0,0);
-      workingDays = Math.max(1, countWorkingDays(firstDate, today));
+      workingDays = Math.max(1, countWorkingDays(firstDate, today, userAbsences));
     } else if (insightPeriod === 'month') {
-      workingDays = Math.max(1, countWorkingDays(parseDateStr(range.first), parseDateStr(range.last)));
+      workingDays = Math.max(1, countWorkingDays(parseDateStr(range.first), parseDateStr(range.last), userAbsences));
     } else {
-      workingDays = 1; // день
+      workingDays = 1;
     }
     const dayPct = Math.round((conclusion.totalMin / (workingDays * 480)) * 100);
 
@@ -1762,8 +2070,8 @@ function renderDayInsights(){
   if (!currentKey || !activeEmail){ dayInsightsGrid.innerHTML = ''; return; }
   const key = safeKey(activeEmail);
   const records = getRows(allData[key] || {}, currentKey).map(row => ({ date: currentKey, row }));
-  
-  const conclusion = buildConclusion(analyzeRecords(records));
+  const userAbsences = getAbsences(activeEmail);
+  const conclusion = buildConclusion(analyzeRecords(records, userAbsences));
   const dayPct = Math.round((conclusion.totalMin / 480) * 100);
 
   dayInsightsGrid.innerHTML = renderInsightCard(activeEmail, conclusion, dayPct);
@@ -2020,8 +2328,11 @@ deepOverlay.addEventListener('click', e => { if (e.target === deepOverlay) close
 function analyzeDeep(email){
   const range = getInsightRange();
   const records = collectRecordsForUser(email, range.first, range.last);
-  const base = analyzeRecords(records);
+  const userAbsences = getAbsences(email);
+  const base = analyzeRecords(records, userAbsences);
   if (base.totalMin <= 0) return null;
+
+  const filteredRecords = records.filter(({date}) => !userAbsences[date]);
 
   let chartLabels = [];
   let chartMins = [];
@@ -2031,7 +2342,7 @@ function analyzeDeep(email){
 
   if (insightPeriod === 'all') {
     const byMonth = new Map();
-    records.forEach(({ date, row }) => {
+    filteredRecords.forEach(({ date, row }) => {
       const mins = rowMinutes(row); if (mins <= 0) return;
       const mKey = date.slice(0, 7);
       if (!byMonth.has(mKey)) byMonth.set(mKey, { mins: 0, intW: 0, intM: 0, compW: 0, compM: 0 });
@@ -2053,7 +2364,7 @@ function analyzeDeep(email){
     const y = viewDate.getFullYear(), m = viewDate.getMonth();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const weeks = Array.from({ length: 5 }, () => ({ mins: 0, intW: 0, intM: 0, compW: 0, compM: 0 }));
-    records.forEach(({ date, row }) => {
+    filteredRecords.forEach(({ date, row }) => {
       const mins = rowMinutes(row); if (mins <= 0) return;
       const day = Number(date.slice(8, 10));
       const wi = Math.min(4, Math.floor((day - 1) / 7));
@@ -2075,7 +2386,7 @@ function analyzeDeep(email){
     const y = viewDate.getFullYear(), m = viewDate.getMonth();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const perDay = Array.from({ length: daysInMonth }, () => 0);
-    records.forEach(({ date, row }) => {
+    filteredRecords.forEach(({ date, row }) => {
       const day = Number(date.slice(8, 10));
       perDay[day - 1] += rowMinutes(row);
     });
@@ -2110,7 +2421,7 @@ function analyzeDeep(email){
   }).sort((a,b) => b.mins - a.mins);
   
   const tasksMap = new Map();
-  records.forEach(({ row }) => {
+  filteredRecords.forEach(({ row }) => {
     const mins = rowMinutes(row); if (mins <= 0) return;
     const tKey = (row.task || '').trim() || '(без названия)';
     if (!tasksMap.has(tKey)) tasksMap.set(tKey, { task: tKey, minutes: 0, interest: -1, complexity: -1, type: row.workType || 'Не указано' });
@@ -2130,35 +2441,17 @@ function analyzeDeep(email){
     email, base, conclusion, 
     chartLabels, chartMins, chartInterest, chartComplex, chartTitle,
     heatmapHtml, flags, typeStats, topTasksByTime, topLikedTasks, topDislikedTasks, avgPerActiveDay, 
-    interestIndex, complexityIndex, records 
+    interestIndex, complexityIndex, records: filteredRecords 
   };
 }
 
 function buildPersonalityDeep(deep){
   const { base, conclusion, interestIndex, complexityIndex } = deep;
-  const riasecScores = { I: 0, S: 0, E: 0, C: 0, R: 0, A: 0 };
-  base.byType.forEach((mins, type) => {
-    if (['IT', 'Оптимизация складских процессов', 'КРО'].includes(type)) riasecScores.I += mins;
-    else if (['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ', 'Обучение', 'Обучение персонала'].includes(type)) riasecScores.S += mins;
-    else if (['Работа с договорами/Бухгалтерия', 'HD и доп. отгрузки', 'Постановка и контроль задач'].includes(type)) riasecScores.E += mins;
-    else if (['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами'].includes(type)) riasecScores.C += mins;
-  });
-
-  const riasecMap = {
-    I: { name: 'Исследователь (Investigative)', desc: 'Склонен к анализу, решению сложных задач и оптимизации. Любит работать с данными и искать скрытые закономерности.' },
-    S: { name: 'Социальный (Social)', desc: 'Ориентирован на людей и коммуникацию. Отлично чувствует себя в роли помощника, наставника или координатора.' },
-    E: { name: 'Предприимчивый (Enterprising)', desc: 'Нацелен на результат, любит влиять на процессы, вести переговоры и брать на себя ответственность за бизнес-показатели.' },
-    C: { name: 'Конвенциональный (Conventional)', desc: 'Ценит порядок, стабильность и четкие правила. Отлично справляется с рутиной, документооборотом и поддержанием процессов.' },
-    R: { name: 'Реалистичный (Realistic)', desc: 'Практик, ориентированный на конкретные действия и осязаемый результат.' },
-    A: { name: 'Артистичный (Artistic)', desc: 'Творческий подход, самовыражение и нестандартные решения.' }
-  };
-
-  let topRiasec = 'I';
-  let maxScore = -1;
-  for (const [key, score] of Object.entries(riasecScores)) {
-    if (score > maxScore) { maxScore = score; topRiasec = key; }
-  }
-  const riasecResult = riasecMap[topRiasec] || { name: 'Смешанный тип', desc: 'Профиль задач сбалансирован.' };
+  
+  const unified = calculateRoleAndType(base.byType, base.totalMin, interestIndex, complexityIndex);
+  const topRiasec = unified ? unified.topRiasec : 'I';
+  const riasecResult = unified ? unified.riasecResult : { name: 'Смешанный тип', desc: 'Профиль задач сбалансирован.' };
+  const teamRole = unified ? { title: unified.topRole, desc: unified.roleDesc } : { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
 
   const routineMin = ['Зарплата','КРО','Работа с почтой'].reduce((s,t) => s + (base.byType.get(t) || 0), 0);
   const routineShare = base.totalMin ? routineMin / base.totalMin : 0;
@@ -2204,41 +2497,6 @@ function buildPersonalityDeep(deep){
       motivation = { title: 'Мотивация вызовом', desc: 'Стимулирует преодоление сложностей и амбициозные цели.' };
   } else if (interestIndex !== null && interestIndex <= 0.8 && complexityIndex !== null && complexityIndex <= 0.9) {
       motivation = { title: 'Дисциплина / Обязанность', desc: 'Выполняет работу вне зависимости от интереса, опираясь на регламенты.' };
-  }
-  let teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
-  const shareOf = (arr) => arr.reduce((s, t) => s + (base.byType.get(t) || 0), 0) / base.totalMin;
-  let roleScoresArr = [
-    { name: 'Аналитик / Инноватор', share: shareOf(['IT', 'Оптимизация складских процессов', 'КРО']), desc: 'Фокусируется на улучшениях, поиске решений и автоматизации.' },
-    { name: 'Наставник / Тренер', share: shareOf(['Обучение', 'Обучение персонала']), desc: 'Много времени уделяет обучению коллег и передаче знаний.' },
-    { name: 'Кризис-менеджер / Спасатель', share: shareOf(['HD и доп. отгрузки']), desc: 'Быстро реагирует на срочные задачи и решает внезапные проблемы.' },
-    { name: 'Аудитор / Хранитель регламентов', share: shareOf(['ОТ и ПБ', 'Работа с договорами/Бухгалтерия']), desc: 'Отвечает за порядок, регламенты, безопасность и документооборот.' },
-    { name: 'Коммуникатор / Дипломат', share: shareOf(['Персонал', 'Рабочие вопросы (текущая операционка)', 'Совещание/ЗУМ']), desc: 'Связующее звено команды, решает вопросы через общение.' },
-    { name: 'Реализатор / Организатор', share: shareOf(['Зарплата', 'Работа с почтой', 'АХО', 'УК', 'Работа с отчётами']), desc: 'Держит в порядке процессы, документы и рутину.' },
-    { name: 'Руководитель', share: shareOf(['Постановка и контроль задач']), desc: 'Управляет командой, ставит цели и контролирует их исполнение.' }
-  ];
-  roleScoresArr.sort((a, b) => b.share - a.share);
-  const topRoleObj = roleScoresArr[0];
-  const eligibleCount = roleScoresArr.filter(s => s.share >= 0.15).length;
-  if (topRoleObj.share >= 0.15) {
-      if (eligibleCount >= 3 && (roleScoresArr[0].share - roleScoresArr[2].share) <= 0.04) {
-          teamRole = { title: 'Универсал', desc: 'Способен закрывать разные участки работы.' };
-      } else {
-          let bestRoleForRiasec = topRoleObj;
-          if (topRiasec === 'I') {
-              bestRoleForRiasec = roleScoresArr.find(r => r.name === 'Аналитик / Инноватор') || topRoleObj;
-          } else if (topRiasec === 'S') {
-              const sRoles = roleScoresArr.filter(r => r.name === 'Наставник / Тренер' || r.name === 'Коммуникатор / Дипломат');
-              sRoles.sort((a,b) => b.share - a.share);
-              bestRoleForRiasec = sRoles[0] || topRoleObj;
-          } else if (topRiasec === 'E') {
-              const eRoles = roleScoresArr.filter(r => r.name === 'Кризис-менеджер / Спасатель' || r.name === 'Аудитор / Хранитель регламентов' || r.name === 'Руководитель');
-              eRoles.sort((a,b) => b.share - a.share);
-              bestRoleForRiasec = eRoles[0] || topRoleObj;
-          } else if (topRiasec === 'C') {
-              bestRoleForRiasec = roleScoresArr.find(r => r.name === 'Реализатор / Организатор') || topRoleObj;
-          }
-          teamRole = { title: bestRoleForRiasec.name, desc: bestRoleForRiasec.desc };
-      }
   }
   
   let peakTime = { title: 'Не определен', desc: 'Недостаточно данных о времени.' };
@@ -2330,14 +2588,15 @@ function openDeepAnalysis(email){
 
     let totalMinPeriod = base.totalMin;
     let workingDaysForPct = 1;
+    const userAbsences = getAbsences(email);
     if (insightPeriod === 'all') {
       const firstDate = getFirstRecordDate(email);
       const today = new Date();
       today.setHours(0,0,0,0);
-      workingDaysForPct = Math.max(1, countWorkingDays(firstDate, today));
+      workingDaysForPct = Math.max(1, countWorkingDays(firstDate, today, userAbsences));
     } else if (insightPeriod === 'month') {
       const y = viewDate.getFullYear(), m = viewDate.getMonth();
-      workingDaysForPct = Math.max(1, countWorkingDays(new Date(y, m, 1), new Date(y, m + 1, 0)));
+      workingDaysForPct = Math.max(1, countWorkingDays(new Date(y, m, 1), new Date(y, m + 1, 0), userAbsences));
     }
     const dayPct = Math.round((totalMinPeriod / (workingDaysForPct * 480)) * 100);
 
@@ -2636,6 +2895,66 @@ document.getElementById('accountSelect').addEventListener('change', e => {
 });
 
 /* =============================================================
+   МОДАЛКА ОТСУТСТВИЙ
+   ============================================================= */
+function openAbsenceModal(fromKey, toKey){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  const monthFirst = keyOf(y, m, 1);
+  document.getElementById('absenceFrom').value = fromKey || monthFirst;
+  document.getElementById('absenceTo').value   = toKey || fromKey || monthFirst;
+  document.getElementById('absenceType').value = 'vacation';
+  document.getElementById('absenceNote').value = '';
+  document.getElementById('absenceMsg').className = 'auth-msg';
+  document.getElementById('absenceMsg').textContent = '';
+  absenceOverlay.classList.add('open');
+}
+function closeAbsenceModal(){ absenceOverlay.classList.remove('open'); }
+
+document.getElementById('absenceClose').addEventListener('click', closeAbsenceModal);
+document.getElementById('absenceCancelBtn').addEventListener('click', closeAbsenceModal);
+absenceOverlay.addEventListener('click', e => { if (e.target === absenceOverlay) closeAbsenceModal(); });
+document.getElementById('absenceBtn').addEventListener('click', () => openAbsenceModal());
+
+document.getElementById('absenceForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('absenceMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  const type = document.getElementById('absenceType').value;
+  const from = document.getElementById('absenceFrom').value;
+  const to   = document.getElementById('absenceTo').value;
+  const note = document.getElementById('absenceNote').value.trim();
+  if (!from || !to){ msg.textContent = 'Укажите обе даты.'; return; }
+  if (to < from){ msg.textContent = 'Дата «по» не может быть раньше даты «с».'; return; }
+  if (hasRecordsInRange(activeEmail, from, to)){
+    if (!confirm('На некоторые из этих дней есть записи. Они сохранятся, но не будут учитываться в статистике за отсутствующие дни. Продолжить?')) return;
+  }
+  try {
+    await setAbsencePeriod(activeEmail, from, to, type, note);
+    msg.className = 'auth-msg ok'; msg.textContent = 'Отмечено.';
+    renderCalendar();
+    renderMonthInsights();
+    if (currentKey && currentKey >= from && currentKey <= to) { renderDayAbsenceBar(); renderDayInsights(); }
+    setTimeout(closeAbsenceModal, 500);
+  } catch(err){ msg.textContent = 'Ошибка: ' + (err.message || err); }
+});
+
+document.getElementById('absenceDelete').addEventListener('click', async () => {
+  const msg = document.getElementById('absenceMsg'); msg.className = 'auth-msg'; msg.textContent = '';
+  const from = document.getElementById('absenceFrom').value;
+  const to   = document.getElementById('absenceTo').value;
+  if (!from || !to){ msg.textContent = 'Укажите обе даты.'; return; }
+  if (to < from){ msg.textContent = 'Дата «по» не может быть раньше даты «с».'; return; }
+  if (!confirm('Убрать отметки отсутствия за период ' + from + ' — ' + to + '?')) return;
+  try {
+    await removeAbsencePeriod(activeEmail, from, to);
+    msg.className = 'auth-msg ok'; msg.textContent = 'Отметки удалены.';
+    renderCalendar();
+    renderMonthInsights();
+    if (currentKey) { renderDayAbsenceBar(); renderDayInsights(); }
+    setTimeout(closeAbsenceModal, 500);
+  } catch(err){ msg.textContent = 'Ошибка: ' + (err.message || err); }
+});
+
+/* =============================================================
    ЭКСПОРТ
    ============================================================= */
 function csvCell(v){ return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
@@ -2772,8 +3091,6 @@ function openProfile(){
   document.getElementById('changePwForm').reset();
   document.getElementById('profileMsg').className = 'auth-msg';
   document.getElementById('profileMsg').textContent = '';
-  document.getElementById('importMsg').className = 'auth-msg';
-  document.getElementById('importMsg').textContent = '';
   profileOverlay.classList.add('open');
   setTimeout(() => document.getElementById('profFio').focus(), 50);
 }
@@ -2785,7 +3102,6 @@ function closeProfile(){
   document.getElementById('changePwForm').reset();
   document.getElementById('profileDataMsg').textContent = '';
   document.getElementById('profileMsg').textContent = '';
-  document.getElementById('importMsg').textContent = '';
 }
 
 document.getElementById('userChip').addEventListener('click', openProfile);
@@ -2852,162 +3168,12 @@ document.getElementById('forgotPwFromProfile').addEventListener('click', async (
 });
 
 /* =============================================================
-   ИМПОРТ ДАННЫХ
-   ============================================================= */
-document.getElementById('importDataBtn').addEventListener('click', () => {
-  document.getElementById('importFileInput').click();
-});
-
-document.getElementById('importFileInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const msgEl = document.getElementById('importMsg');
-  msgEl.className = 'auth-msg warn';
-  msgEl.textContent = 'Обработка файла...';
-  
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try {
-      const data = new Uint8Array(ev.target.result);
-      const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-      
-      if (rows.length < 2) throw new Error('Файл пуст или не содержит данных.');
-      
-      const headers = rows[0].map(h => String(h).trim().toLowerCase());
-      
-      const idxDate = headers.findIndex(h => h === 'дата' || h === 'date');
-      const idxStart = headers.findIndex(h => h === 'начало' || h === 'start');
-      const idxEnd = headers.findIndex(h => h === 'конец' || h === 'end');
-      const idxComment = headers.findIndex(h => h === 'комментарии' || h === 'комментарий' || h === 'что делал' || h === 'comments');
-      const idxWorkType = headers.findIndex(h => h === 'вид работ' || h === 'worktype');
-      
-      if (idxDate === -1 || idxStart === -1 || idxEnd === -1 || idxComment === -1 || idxWorkType === -1) {
-        throw new Error('Не найдены обязательные столбцы: Дата, Начало, Конец, Комментарии, Вид работ.');
-      }
-      
-      const importedRowsByDate = {};
-      let count = 0;
-      
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length === 0 || row[idxDate] === undefined || row[idxDate] === '') continue;
-        
-        const dateStr = parseDateVal(row[idxDate]);
-        if (!dateStr) continue;
-        
-        const startStr = parseTimeVal(row[idxStart]);
-        const endStr = parseTimeVal(row[idxEnd]);
-        const comment = String(row[idxComment] || '').trim();
-        const workType = String(row[idxWorkType] || '').trim();
-        
-        if (!startStr && !endStr && !comment && !workType) continue;
-        
-        const duration = calcDuration(startStr, endStr);
-        
-        const newRow = {
-          task: comment,
-          start: startStr,
-          end: endStr,
-          duration: duration,
-          complexity: '',
-          interest: '',
-          workType: workType,
-          comment: ''
-        };
-        
-        if (!importedRowsByDate[dateStr]) importedRowsByDate[dateStr] = [];
-        importedRowsByDate[dateStr].push(newRow);
-        count++;
-      }
-      
-      if (count === 0) throw new Error('Не найдено ни одной строки для импорта.');
-      
-      const key = safeKey(sessionEmail);
-      if (!allData[key]) allData[key] = {};
-      
-      let mergedDays = 0;
-      for (const [dateStr, newRows] of Object.entries(importedRowsByDate)) {
-         if (!allData[key][dateStr]) {
-           allData[key][dateStr] = newRows;
-         } else {
-           allData[key][dateStr] = getRows(allData[key], dateStr).concat(newRows);
-         }
-         mergedDays++;
-      }
-      
-      const finishImport = () => {
-        msgEl.className = 'auth-msg ok';
-        msgEl.innerHTML = `Успешно импортировано <b>${count}</b> записей за <b>${mergedDays}</b> дн.`;
-        renderCalendar();
-        renderMonthChart();
-        renderMonthInsights();
-        document.getElementById('importFileInput').value = '';
-      };
-      
-      if (db) {
-        db.ref('data/' + key).set(allData[key]).then(finishImport).catch(err => {
-          msgEl.className = 'auth-msg';
-          msgEl.textContent = 'Ошибка сохранения: ' + err.message;
-        });
-      } else {
-        localStorage.setItem(DATA_KEY, JSON.stringify(allData));
-        finishImport();
-      }
-      
-    } catch (err) {
-      msgEl.className = 'auth-msg';
-      msgEl.textContent = err.message || 'Ошибка при чтении файла';
-      document.getElementById('importFileInput').value = '';
-    }
-  };
-  reader.readAsArrayBuffer(file);
-});
-
-function parseDateVal(val) {
-   if (!val) return null;
-   if (typeof val === 'number') {
-       const dateInfo = XLSX.SSF.parse_date_code(val);
-       if (dateInfo) return `${dateInfo.y}-${pad2(dateInfo.m)}-${pad2(dateInfo.d)}`;
-   }
-   if (val instanceof Date) {
-       return keyOf(val.getFullYear(), val.getMonth(), val.getDate());
-   }
-   let str = String(val).trim();
-   if (/^\d{4}-\d{2}-\d{2}/.test(str)) return str.slice(0, 10);
-   let m = str.match(/^(\d{1,2})[\.\/](\d{1,2})[\.\/](\d{4})/);
-   if (m) return `${m[3]}-${pad2(parseInt(m[2], 10))}-${pad2(parseInt(m[1], 10))}`;
-   const d = new Date(str);
-   if (!isNaN(d.getTime())) return keyOf(d.getFullYear(), d.getMonth(), d.getDate());
-   return null;
-}
-
-function parseTimeVal(val) {
-   if (val === undefined || val === null || val === '') return '';
-   if (val instanceof Date) {
-       return pad2(val.getHours()) + ':' + pad2(val.getMinutes());
-   }
-   if (typeof val === 'number') {
-       const totalMins = Math.round(val * 24 * 60);
-       const h = Math.floor(totalMins / 60) % 24;
-       const m = totalMins % 60;
-       return pad2(h) + ':' + pad2(m);
-   }
-   let str = String(val).trim();
-   let m = str.match(/^(\d{1,2}):(\d{2})/);
-   if (m) {
-       return pad2(parseInt(m[1], 10)) + ':' + m[2];
-   }
-   return str;
-}
-
-/* =============================================================
    СТАРТ
    ============================================================= */
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (chartTasksOverlay.classList.contains('open')) closeChartTasks();
+  else if (absenceOverlay.classList.contains('open')) closeAbsenceModal();
   else if (deepOverlay.classList.contains('open')) closeDeep();
   else if (profileOverlay.classList.contains('open')) closeProfile();
   else if (pwOverlay.classList.contains('open')) closePwModal();
@@ -3032,8 +3198,15 @@ document.addEventListener('keydown', e => {
         allData = snap.val() || {};
         renderCalendar(); renderMonthChart(); renderMonthInsights();
       });
+      db.ref('absences').on('value', snap => {
+        allAbsences = snap.val() || {};
+        renderCalendar();
+        renderMonthInsights();
+        if (currentKey) renderDayAbsenceBar();
+      });
     });
   } else {
+    allAbsences = safeParse(localStorage.getItem(ABSENCES_KEY), {});
     if (sessionEmail) {
       const key = safeKey(sessionEmail);
       if (users[key]) { activeEmail = sessionEmail; showAppScreen(); }
